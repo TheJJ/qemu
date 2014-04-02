@@ -276,14 +276,16 @@ static void _XTIER_init(void)
 		PRINT_ERROR("Could not allocate memory");
 
 	// Fixed size (1024 * 4096) for now.
-	memory_region_init_ram(_inject_region, "X-TIER.data",
-						   XTIER_MEMORY_AREA_SIZE);
+	memory_region_init_ram(_inject_region,
+		memory_region_owner(_inject_region),
+		"X-TIER.data",
+		XTIER_MEMORY_AREA_SIZE);
 
 	// Fixed offset (1 UL << 30) and priority (1337) for now
 	memory_region_add_subregion_overlap(get_system_memory(),
-										XTIER_MEMORY_AREA_ADDRESS,
-									   _inject_region,
-	                                    1337);
+		XTIER_MEMORY_AREA_ADDRESS,
+		_inject_region,
+		1337);
 
 	_initialized = 1;
 }

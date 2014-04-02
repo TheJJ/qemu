@@ -2688,17 +2688,23 @@ hwaddr gva_to_hva(CPUState *state, hwaddr addr)
 	// Get Host Virtual address
 	page = phys_addr & TARGET_PAGE_MASK;
 
-	// Get section
-	section = phys_page_find(address_space_memory.dispatch, page >> TARGET_PAGE_BITS);
+	struct AddressSpaceDispatch *mem_dispatch = address_space_memory.dispatch;
 
-	if (!memory_region_is_ram(section->mr))
-	{
+	// Get section
+	section = phys_page_find(mem_dispatch->phys_map,
+		page >> TARGET_PAGE_BITS,
+		mem_dispatch->nodes,
+		mem_dispatch->sections);
+
+	if (!memory_region_is_ram(section->mr)) {
 		return -1;
 	}
 
-	// Convert address
-	return ((unsigned long long)qemu_get_ram_ptr(section->mr->ram_addr)) +
-			memory_region_section_addr(section, phys_addr);
+	hwaddr hva = (hwaddr)qemu_get_ram_ptr(section->mr->ram_addr);
+	hva -= section->offset_within_address_space;
+	hva += section->offset_within_region;
+
+	return hva;
 }
 
 #ifndef CONFIG_USER_ONLY

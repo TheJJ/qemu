@@ -2470,7 +2470,7 @@ void XTIER_stop_getting_user_input(void)
 
 void XTIER_synchronize_state(CPUState *state)
 {
-	cpu_synchronize_state((CPUX86State *)state);
+	cpu_synchronize_state(state);
 }
 
 /* Please update hmp-commands.hx when adding or changing commands */
