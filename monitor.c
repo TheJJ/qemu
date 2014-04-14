@@ -2452,7 +2452,13 @@ int monitor_handle_fd_param(Monitor *mon, const char *fdname)
 
 static void XTIER_shell(Monitor *mon, const QDict *qdict)
 {
-	XTIER_switch_to_XTIER_mode((CPUState *)mon_get_cpu());
+	if (!cur_mon->mon_cpu) {
+		monitor_set_cpu(0);
+	}
+	cpu_synchronize_state(cur_mon->mon_cpu);
+	CPUState *monitor_cpu_state = cur_mon->mon_cpu;
+
+	XTIER_switch_to_XTIER_mode(monitor_cpu_state);
 }
 
 
