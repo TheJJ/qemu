@@ -10,7 +10,7 @@
 #define ERROR 2
 #define CRITICAL 1
 
-#define DEBUG_LEVEL 4
+#define DEBUG_LEVEL 5
 
 
 #define msg_print(level, level_string, fmt, ...) \
