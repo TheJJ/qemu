@@ -70,7 +70,7 @@ def main(args):
 
     try:
         opts, args = getopt.getopt(args[1:], "", long_opts)
-    except getopt.GetoptError, err:
+    except getopt.GetoptError as err:
         error_opt(str(err))
 
     check_backend = False
@@ -131,7 +131,7 @@ def main(args):
     try:
         tracetool.generate(sys.stdin, arg_format, arg_backend,
                            binary = binary, probe_prefix = probe_prefix)
-    except tracetool.TracetoolError, e:
+    except tracetool.TracetoolError as e:
         error_opt(str(e))
 
 if __name__ == "__main__":

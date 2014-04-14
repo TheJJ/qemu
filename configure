@@ -1356,11 +1356,9 @@ if ! has $python; then
   error_exit "Python not found. Use --python=/path/to/python"
 fi
 
-# Note that if the Python conditional here evaluates True we will exit
-# with status 1 which is a shell 'false' value.
-if ! "$python" -c 'import sys; sys.exit(sys.version_info < (2,4) or sys.version_info >= (3,))'; then
-  error_exit "Cannot use '$python', Python 2.4 or later is required." \
-      "Note that Python 3 or later is not yet supported." \
+#if the python version is too low, k will be True, that equals exit(1) -> error.
+if ! "$python" -c 'import sys; v = sys.version_info; k = (v < (2,7) if v[0] == 2 else (v < (3,2))); sys.exit(k)'; then
+  error_exit "Cannot use '$python', Python >=2.7 or >=3.2 is required." \
       "Use --python=/path/to/python to specify a supported Python."
 fi
 

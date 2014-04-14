@@ -180,6 +180,6 @@ if __name__ == '__main__':
                 else:
                     fields.append('%s=0x%x' % (name, rec[i + 1]))
                 i += 1
-            print ' '.join(fields)
+            print(' '.join(fields))
 
     run(Formatter())
