@@ -100,7 +100,7 @@ struct XTIER_command
 // The current XTIER config.
 struct XTIER_state _XTIER;
 
-CPUState *_env = NULL;
+CPUState *cpu_state = NULL;
 
 int _initialized = 0;
 
@@ -292,7 +292,7 @@ static void _XTIER_init(void)
 
 int XTIER_ioctl(unsigned int command, void *arg)
 {
-	return kvm_vcpu_ioctl(ENV_GET_CPU((struct CPUX86State *)_env), command, arg);
+	return kvm_vcpu_ioctl(CPU(X86_CPU(cpu_state)), command, arg);
 }
 
 static struct XTIER_question * _find_top_level_question(int id)
@@ -631,7 +631,7 @@ void XTIER_switch_to_XTIER_mode(CPUState *env)
 	vm_stop(RUN_STATE_PAUSED);
 
 	// set env
-	_env = env;
+	cpu_state = env;
 
 	// Init if necessary
 	if(!_initialized)
@@ -822,10 +822,10 @@ void XTIER_command_receive_external_command(const char *cmdline)
 			PRINT_ERROR("An error occurred while injecting the file!\n");
 
 		// Synchronize new cpu_state
-		_env->kvm_vcpu_dirty = 0; // Force the sync
-		XTIER_synchronize_state(_env);
+		cpu_state->kvm_vcpu_dirty = 0; // Force the sync
+		XTIER_synchronize_state(cpu_state);
 
-		// fprintf(stderr, "RIP now: 0x%llx\n", _env->eip);
+		// fprintf(stderr, "RIP now: 0x%llx\n", cpu_state->eip);
 	}
 	else
 	{
@@ -1007,7 +1007,7 @@ static void XTIER_handle_injection_finished(void)
 	}
 
 	// Sync
-	XTIER_synchronize_state(_env);
+	XTIER_synchronize_state(cpu_state);
 }
 
 static void XTIER_handle_injection_fault(void)
@@ -1015,7 +1015,7 @@ static void XTIER_handle_injection_fault(void)
 	PRINT_ERROR("An exception occurred during the injection that could not be handled!\n");
 
 	// Sync
-	XTIER_synchronize_state(_env);
+	XTIER_synchronize_state(cpu_state);
 }
 
 void XTIER_command_event_based_inject(const char *cmdline)
@@ -1170,10 +1170,10 @@ int XTIER_question_inject_get_file(const char *cmdline)
 		PRINT_ERROR("An error (%d) occurred while injecting the file!\n", ret);
 
 	// Synchronize new cpu_state
-	_env->kvm_vcpu_dirty = 0; // Force the sync
-	XTIER_synchronize_state(_env);
+	cpu_state->kvm_vcpu_dirty = 0; // Force the sync
+	XTIER_synchronize_state(cpu_state);
 
-	// fprintf(stderr, "RIP now: 0x%llx\n", _env->eip);
+	// fprintf(stderr, "RIP now: 0x%llx\n", cpu_state->eip);
 
 	return ret;
 }
@@ -1275,10 +1275,10 @@ int XTIER_question_event_inject_select_module(const char *cmdline)
 	_event_injection = 1;
 
 	// Synchronize new cpu_state
-	_env->kvm_vcpu_dirty = 0; // Force the sync
-	XTIER_synchronize_state(_env);
+	cpu_state->kvm_vcpu_dirty = 0; // Force the sync
+	XTIER_synchronize_state(cpu_state);
 
-	// fprintf(stderr, "RIP now: 0x%llx\n", _env->eip);
+	// fprintf(stderr, "RIP now: 0x%llx\n", cpu_state->eip);
 
 	return ret;
 }
