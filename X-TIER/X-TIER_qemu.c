@@ -104,7 +104,7 @@ CPUState *cpu_state = NULL;
 
 int _initialized = 0;
 
-MemoryRegion *_inject_region;
+MemoryRegion *inject_memory;
 
 int _event_injection = 0;
 u32 _auto_injection = 0;
@@ -270,21 +270,21 @@ static void _XTIER_init(void)
 	_XTIER.os = XTIER_OS_UNKNOWN;
 
 	// Allocate memory within the guest
-	_inject_region = g_malloc(sizeof(*_inject_region));
+	inject_memory = g_malloc(sizeof(*inject_memory));
 
-	if (!_inject_region)
+	if (!inject_memory)
 		PRINT_ERROR("Could not allocate memory");
 
 	// Fixed size (1024 * 4096) for now.
-	memory_region_init_ram(_inject_region,
-		memory_region_owner(_inject_region),
+	memory_region_init_ram(inject_memory,
+		NULL,
 		"X-TIER.data",
 		XTIER_MEMORY_AREA_SIZE);
 
 	// Fixed offset (1 UL << 30) and priority (1337) for now
 	memory_region_add_subregion_overlap(get_system_memory(),
 		XTIER_MEMORY_AREA_ADDRESS,
-		_inject_region,
+		inject_memory,
 		1337);
 
 	_initialized = 1;
