@@ -2172,17 +2172,16 @@ int kvm_arch_handle_exit(CPUState *cs, struct kvm_run *run)
         ret = kvm_handle_debug(cpu, &run->debug.arch);
         break;
     case XTIER_EXIT_REASON_INJECT_FINISHED:
-		/* fall through */
+        /* fall through */
     case XTIER_EXIT_REASON_INJECT_FAULT:
-		/* fall through */
+        /* fall through */
     case XTIER_EXIT_REASON_INJECT_COMMAND:
-		/* fall through */
+        /* fall through */
     case XTIER_EXIT_REASON_DEBUG:
-		XTIER_handle_exit((CPUState *)&cpu->env, run->exit_reason);
-
-		// Continue
-		ret = 0;
-		break;
+        /* fall through */
+    case XTIER_EXIT_REASON:
+        ret = XTIER_handle_exit(cs, run->exit_reason);
+        break;
     default:
         fprintf(stderr, "KVM: unknown exit reason %d\n", run->exit_reason);
         ret = -1;

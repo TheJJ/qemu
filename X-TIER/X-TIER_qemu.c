@@ -1328,35 +1328,42 @@ void XTIER_synchronize_state(CPUState *state)
 /*
  * Handle kvm exits due to XTIER.
  */
-void XTIER_handle_exit(CPUState *env, u64 exit_reason)
+int XTIER_handle_exit(CPUState *env, u64 exit_reason)
 {
 	PRINT_DEBUG("Handling EXIT: %lld...\n", exit_reason);
 
-	switch(exit_reason)
-	{
-		case XTIER_EXIT_REASON_INJECT_FINISHED:
-			XTIER_handle_injection_finished();
-			XTIER_switch_to_XTIER_mode(env);
-			PRINT_OUTPUT(XTIER_PROMPT);
-			return;
-		case XTIER_EXIT_REASON_INJECT_FAULT:
-			XTIER_handle_injection_fault();
-			XTIER_switch_to_XTIER_mode(env);
-			PRINT_OUTPUT(XTIER_PROMPT);
-			return;
-		case XTIER_EXIT_REASON_INJECT_COMMAND:
-			// sync state
-			XTIER_synchronize_state(env);
+	int ret = 0;
 
-			// handle
-			XTIER_inject_handle_interrupt(env, &_external_command_redirect);
-			return;
-		case XTIER_EXIT_REASON_DEBUG:
-			PRINT_INFO("Debug exit requested.\n");
-			XTIER_switch_to_XTIER_mode(env);
-			PRINT_OUTPUT(XTIER_PROMPT);
-			return;
-		default:
-			PRINT_ERROR("Unknown exit reason!\n");
+	switch(exit_reason) {
+	case XTIER_EXIT_REASON_INJECT_FINISHED:
+		XTIER_handle_injection_finished();
+		XTIER_switch_to_XTIER_mode(env);
+		PRINT_OUTPUT(XTIER_PROMPT);
+		break;
+
+	case XTIER_EXIT_REASON_INJECT_FAULT:
+		XTIER_handle_injection_fault();
+		XTIER_switch_to_XTIER_mode(env);
+		PRINT_OUTPUT(XTIER_PROMPT);
+		break;
+
+	case XTIER_EXIT_REASON_INJECT_COMMAND:
+		// sync state
+		XTIER_synchronize_state(env);
+
+		// handle
+		XTIER_inject_handle_interrupt(env, &_external_command_redirect);
+		break;
+
+	case XTIER_EXIT_REASON_DEBUG:
+		PRINT_INFO("Debug exit requested.\n");
+		XTIER_switch_to_XTIER_mode(env);
+		PRINT_OUTPUT(XTIER_PROMPT);
+		break;
+
+	default:
+		PRINT_ERROR("Unknown exit reason!\n");
 	}
+
+	return ret;
 }

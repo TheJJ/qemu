@@ -26,7 +26,7 @@ void XTIER_handle_input(Monitor *mon, const char *cmdline, void *opaque);
 /**
  * Handle X-TIER related VM Exits.
  */
-void XTIER_handle_exit(CPUState *env, u64 exit_reason);
+int XTIER_handle_exit(CPUState *env, u64 exit_reason);
 
 /**
  * Switch to the X-TIER shell.
