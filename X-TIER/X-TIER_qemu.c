@@ -126,55 +126,55 @@ XTIER_command_callback _return_to;
 
 
 struct XTIER_choice os_choices[] = {
-		{
-			.choice = XTIER_OS_UBUNTU_64,
-			.description = "Ubuntu Server 64-bit",
-			.sub_question = NULL,
-		},
-		{
-			.choice = XTIER_OS_WINDOWS_7_32,
-			.description = "Windows 7 32-bit",
-			.sub_question = NULL,
-		},
-		{
-			.choice = XTIER_OS_UBUNTU_32,
-			.description = "Ubuntu Server 32-bit",
-			.sub_question = NULL,
-		},
+	{
+		.choice = XTIER_OS_UBUNTU_64,
+		.description = "Ubuntu Server 64-bit",
+		.sub_question = NULL,
+	},
+	{
+		.choice = XTIER_OS_WINDOWS_7_32,
+		.description = "Windows 7 32-bit",
+		.sub_question = NULL,
+	},
+	{
+		.choice = XTIER_OS_UBUNTU_32,
+		.description = "Ubuntu Server 32-bit",
+		.sub_question = NULL,
+	},
 };
 
 struct XTIER_choice XTIER_event_inject[] = {
-		{
-			.choice = XTIER_INJECT_EVENT_MODULE_ACE,
-			.description = "Access Control Enforcer",
-			.sub_question = NULL,
-		},
-		{
-			.choice = XTIER_INJECT_EVENT_MODULE_VIRUSTOTAL,
-			.description = "Virustotal",
-			.sub_question = NULL,
-		}
+	{
+		.choice = XTIER_INJECT_EVENT_MODULE_ACE,
+		.description = "Access Control Enforcer",
+		.sub_question = NULL,
+	},
+	{
+		.choice = XTIER_INJECT_EVENT_MODULE_VIRUSTOTAL,
+		.description = "Virustotal",
+		.sub_question = NULL,
+	}
 };
 
 struct XTIER_question top_level_questions[] = {
-		{
-			.id = XTIER_QUESTION_OS,
-			.callback = XTIER_question_specify_os,
-			.choices = os_choices,
-			.number_of_choices = ARRAY_SIZE(os_choices),
-		},
-		{
-			.id = XTIER_QUESTION_INJECT_GET_FILE,
-			.callback = XTIER_question_inject_get_file,
-			.choices = NULL,
-			.number_of_choices = 0,
-		},
-		{
-			.id = XTIER_QUESTION_EVENT_INJECT_SELECT_MODULE,
-			.callback = XTIER_question_event_inject_select_module,
-			.choices = XTIER_event_inject,
-			.number_of_choices = ARRAY_SIZE(XTIER_event_inject),
-		},
+	{
+		.id = XTIER_QUESTION_OS,
+		.callback = XTIER_question_specify_os,
+		.choices = os_choices,
+		.number_of_choices = ARRAY_SIZE(os_choices),
+	},
+	{
+		.id = XTIER_QUESTION_INJECT_GET_FILE,
+		.callback = XTIER_question_inject_get_file,
+		.choices = NULL,
+		.number_of_choices = 0,
+	},
+	{
+		.id = XTIER_QUESTION_EVENT_INJECT_SELECT_MODULE,
+		.callback = XTIER_question_event_inject_select_module,
+		.choices = XTIER_event_inject,
+		.number_of_choices = ARRAY_SIZE(XTIER_event_inject),
+	},
 };
 
 
@@ -187,76 +187,76 @@ struct XTIER_command *_current_command;
 struct XTIER_command *_current_command_parent;
 
 struct XTIER_command top_level_commands[] = {
-		{
-			.name = "auto-inject",
-			.description = "Enable auto injection for the currently injected module.",
-			.callback = XTIER_command_auto_inject,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "time-inject",
-			.description = "Enable timed-injection for the currently injected module.",
-			.callback = XTIER_command_time_inject,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "event-inject",
-			.description = "Event-based injection of a kernel module.",
-			.callback = XTIER_command_event_based_inject,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "cont",
-			.description = "Resume VM and return to 'monitor' Mode.",
-			.callback = XTIER_switch_to_monitor_mode,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "inject",
-			.description = "Inject code into the Virtual Machine",
-			.callback = XTIER_command_inject,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "monitor",
-			.description = "Return to 'monitor' Mode, but do not resume VM.",
-			.callback = XTIER_switch_to_monitor_mode_keep_paused,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "quit",
-			.description = "Return to 'monitor' Mode. VM will be paused.",
-			.callback = XTIER_switch_to_monitor_mode_keep_paused,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "exit",
-			.description = "Return to 'monitor' Mode. VM will be paused.",
-			.callback = XTIER_switch_to_monitor_mode_keep_paused,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "help",
-			.description = "Print help information.",
-			.callback = XTIER_print_help,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
-		{
-			.name = "external",
-			.description = "Receive an external command.",
-			.callback = XTIER_command_receive_external_command,
-			.sub_commands = NULL,
-			.number_of_sub_commands = 0,
-		},
+	{
+		.name = "auto-inject",
+		.description = "Enable auto injection for the currently injected module.",
+		.callback = XTIER_command_auto_inject,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "time-inject",
+		.description = "Enable timed-injection for the currently injected module.",
+		.callback = XTIER_command_time_inject,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "event-inject",
+		.description = "Event-based injection of a kernel module.",
+		.callback = XTIER_command_event_based_inject,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "cont",
+		.description = "Resume VM and return to 'monitor' Mode.",
+		.callback = XTIER_switch_to_monitor_mode,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "inject",
+		.description = "Inject code into the Virtual Machine",
+		.callback = XTIER_command_inject,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "monitor",
+		.description = "Return to 'monitor' Mode, but do not resume VM.",
+		.callback = XTIER_switch_to_monitor_mode_keep_paused,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "quit",
+		.description = "Return to 'monitor' Mode. VM will be paused.",
+		.callback = XTIER_switch_to_monitor_mode_keep_paused,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "exit",
+		.description = "Return to 'monitor' Mode. VM will be paused.",
+		.callback = XTIER_switch_to_monitor_mode_keep_paused,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "help",
+		.description = "Print help information.",
+		.callback = XTIER_print_help,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
+	{
+		.name = "external",
+		.description = "Receive an external command.",
+		.callback = XTIER_command_receive_external_command,
+		.sub_commands = NULL,
+		.number_of_sub_commands = 0,
+	},
 };
 
 
@@ -277,15 +277,15 @@ static void _XTIER_init(void)
 
 	// Fixed size (1024 * 4096) for now.
 	memory_region_init_ram(inject_memory,
-		NULL,
-		"X-TIER.data",
-		XTIER_MEMORY_AREA_SIZE);
+	                       NULL,
+	                       "X-TIER.data",
+	                       XTIER_MEMORY_AREA_SIZE);
 
 	// Fixed offset (1 UL << 30) and priority (1337) for now
 	memory_region_add_subregion_overlap(get_system_memory(),
-		XTIER_MEMORY_AREA_ADDRESS,
-		inject_memory,
-		1337);
+	                                    XTIER_MEMORY_AREA_ADDRESS,
+	                                    inject_memory,
+	                                    1337);
 
 	_initialized = 1;
 }
@@ -421,31 +421,31 @@ static void _print_long_line(int padding_left, int width, const char *data)
  */
 void XTIER_ask_current_question(void)
 {
-	if(!_current_question)
+	if(!_current_question) {
 		PRINT_WARNING("There is currently no question set!\n");
+		return;
+	}
 
 	// Add new questions here
 	switch(_current_question->id)
 	{
-		case XTIER_QUESTION_OBTAIN_FILE_NAME:
-			PRINT_OUTPUT("\nPlease enter the name of the file where to save to.\n"
-						"Existing files will be overwritten!\n");
-			break;
-		case XTIER_QUESTION_OS:
-			PRINT_OUTPUT("\nPlease specify the guest OS.\nType 'help' to see the available choices.\n");
-			break;
-		case XTIER_QUESTION_INJECT_GET_FILE:
-			PRINT_OUTPUT("\nPlease specify the binary file that contains the code that will be injected.\n");
-			break;
-		case XTIER_QUESTION_EVENT_INJECT_SELECT_MODULE:
-			PRINT_OUTPUT("\nPlease select the event based module that you want to inject.\n");
-			break;
-		default:
-			PRINT_WARNING("Unknown question id!\n");
-			break;
+	case XTIER_QUESTION_OBTAIN_FILE_NAME:
+		PRINT_OUTPUT("\nPlease enter the name of the file where to save to.\n"
+		             "Existing files will be overwritten!\n");
+		break;
+	case XTIER_QUESTION_OS:
+		PRINT_OUTPUT("\nPlease specify the guest OS.\nType 'help' to see the available choices.\n");
+		break;
+	case XTIER_QUESTION_INJECT_GET_FILE:
+		PRINT_OUTPUT("\nPlease specify the binary file that contains the code that will be injected.\n");
+		break;
+	case XTIER_QUESTION_EVENT_INJECT_SELECT_MODULE:
+		PRINT_OUTPUT("\nPlease select the event based module that you want to inject.\n");
+		break;
+	default:
+		PRINT_WARNING("Unknown question id!\n");
+		break;
 	}
-
-
 }
 
 
