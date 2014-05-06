@@ -474,7 +474,7 @@ void XTIER_print_help(const char *cmdline)
 		// Header
 		PRINT_OUTPUT("%5.5s%-10.10s%5.5s%-40.40s\n", "", "CHOICE", "", "MEANING");
 		PRINT_OUTPUT("%5.5s%-10.10s%5.5s%-40.40s\n", "", "------", "",
-					"--------------------------------------------------------------------------------------");
+		             "--------------------------------------------------------------------------------------");
 
 		for(i = 0; i < size; i++)
 		{
@@ -493,7 +493,7 @@ void XTIER_print_help(const char *cmdline)
 		// Header
 		PRINT_OUTPUT("%5.5s%-20.20s%5.5s%-40.40s\n", "", "SUB COMMANDS", "", "DESCRIPTION");
 		PRINT_OUTPUT("%5.5s%-20.20s%5.5s%-40.40s\n", "", "------------", "",
-					"--------------------------------------------------------------------------------------");
+		             "--------------------------------------------------------------------------------------");
 
 
 		for(i = 0; i < size; i++)
@@ -511,7 +511,7 @@ void XTIER_print_help(const char *cmdline)
 		// Header
 		PRINT_OUTPUT("%5.5s%-20.20s%5.5s%-40.40s\n", "", "COMMANDS", "", "DESCRIPTION");
 		PRINT_OUTPUT("%5.5s%-20.20s%5.5s%-40.40s\n", "", "--------", "",
-					"--------------------------------------------------------------------------------------");
+		             "--------------------------------------------------------------------------------------");
 
 		size = ARRAY_SIZE(top_level_commands);
 
@@ -725,8 +725,8 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	{
 		// Get the redirection struct
 		if (read(_external_command_fd, &_external_command_redirect,
-				sizeof(struct XTIER_external_command_redirect)) !=
-			    sizeof(struct XTIER_external_command_redirect))
+		         sizeof(struct XTIER_external_command_redirect)) !=
+		    sizeof(struct XTIER_external_command_redirect))
 		{
 			PRINT_ERROR("An error occurred while receiving the redirect struct. Aborting...\n");
 			return;
@@ -944,16 +944,16 @@ static long XTIER_print_injection_performance(void)
 		}
 
 		XTIER_ns_to_time((perf.total_module_load_time +
-							perf.total_module_exec_time +
-							perf.total_module_unload_time)
-							/ perf.injections, &t);
+		                  perf.total_module_exec_time +
+		                  perf.total_module_unload_time)
+		                 / perf.injections, &t);
 		PRINT_OUTPUT("\t | Average Total Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 
 		if(perf.temp_removals)
 		{
 			XTIER_ns_to_time((perf.total_module_exec_time -
-											(perf.total_module_temp_removal_time + perf.total_module_temp_resume_time))
-											/ perf.injections, &t);
+			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time))
+			                 / perf.injections, &t);
 			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP Removal/Resume: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 		}
 
@@ -966,14 +966,14 @@ static long XTIER_print_injection_performance(void)
 		if(perf.temp_removals && perf.hypercalls)
 		{
 			XTIER_ns_to_time((perf.total_module_exec_time -
-								(perf.total_module_temp_removal_time + perf.total_module_temp_resume_time + perf.total_module_hypercall_time))
-								/ perf.injections, &t);
+			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time + perf.total_module_hypercall_time))
+			                 / perf.injections, &t);
 			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP R/R & Hypercalls: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 		}
 
 		XTIER_ns_to_time((perf.total_module_load_time +
-							perf.total_module_exec_time +
-							perf.total_module_unload_time), &t);
+		                  perf.total_module_exec_time +
+		                  perf.total_module_unload_time), &t);
 		PRINT_OUTPUT("\t | Total Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 	}
 
@@ -991,7 +991,7 @@ static void XTIER_handle_injection_finished(void)
 
 	// Notify waiting applications if any
 	if (_external_command_redirect.type != NONE &&
-		_external_command_redirect.stream)
+	    _external_command_redirect.stream)
 	{
 		// Send Return Value
 		XTIER_external_command_send_return_value(_external_command_redirect.stream, return_value);
