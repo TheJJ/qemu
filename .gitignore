@@ -55,6 +55,14 @@ fsdev/virtfs-proxy-helper
 fsdev/virtfs-proxy-helper.1
 fsdev/virtfs-proxy-helper.pod
 .gdbinit
+*~
+.*.swp
+.\#*
+\#*\#
+*.a
+*.so
+*.pyc
+*.pyo
 *.a
 *.aux
 *.cp
@@ -84,6 +92,9 @@ fsdev/virtfs-proxy-helper.pod
 .pc
 *.gcda
 *.gcno
+callgrind.out.*
+perf.data*
+__pycache__
 patches
 pc-bios/bios-pq/status
 pc-bios/vgabios-pq/status
