@@ -105,6 +105,5 @@ int monitor_fdset_dup_fd_find(int dup_fd);
 
 void XTIER_start_getting_user_input(ReadLineFunc *callback);
 void XTIER_stop_getting_user_input(void);
-void XTIER_synchronize_state(CPUState *state);
 
 #endif /* !MONITOR_H */

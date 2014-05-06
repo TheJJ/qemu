@@ -106,4 +106,9 @@ int XTIER_question_inject_get_file(const char *cmdline);
  */
 int XTIER_question_event_inject_select_module(const char *cmdline);
 
+/**
+ * synchronize the kvm cpu state.
+ */
+void XTIER_synchronize_state(CPUState *state);
+
 #endif /* XTIER_QEMU_H */

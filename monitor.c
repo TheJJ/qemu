@@ -2474,11 +2474,6 @@ void XTIER_stop_getting_user_input(void)
 	monitor_read_command(default_mon, 1);
 }
 
-void XTIER_synchronize_state(CPUState *state)
-{
-	cpu_synchronize_state(state);
-}
-
 /* Please update hmp-commands.hx when adding or changing commands */
 static mon_cmd_t info_cmds[] = {
     {

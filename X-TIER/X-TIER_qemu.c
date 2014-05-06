@@ -1319,6 +1319,12 @@ int XTIER_question_specify_os(const char *cmdline)
 	return ret;
 }
 
+void XTIER_synchronize_state(CPUState *state)
+{
+	cpu_synchronize_state(state);
+}
+
+
 /*
  * Handle kvm exits due to XTIER.
  */
