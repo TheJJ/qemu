@@ -98,7 +98,7 @@ static void XTIER_inject_handle_printk(CPUState *state, struct kvm_regs *regs)
 	int (*printf_ptr)(char const *str, ...);
 
 	// Transform the GVA addresses into host addresses
-	if (_XTIER.os == XTIER_OS_UBUNTU_64)
+	if (_XTIER.os == XTIER_OS_LINUX_64)
 	{
 		XTIER_inject_transform_call_registers64(state, regs, &call_regs);
 

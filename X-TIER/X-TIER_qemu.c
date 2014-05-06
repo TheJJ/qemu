@@ -127,8 +127,8 @@ XTIER_command_callback _return_to;
 
 struct XTIER_choice os_choices[] = {
 	{
-		.choice = XTIER_OS_UBUNTU_64,
-		.description = "Ubuntu Server 64-bit",
+		.choice = XTIER_OS_LINUX_64,
+		.description = "GNU/Linux 64-bit",
 		.sub_question = NULL,
 	},
 	{
@@ -137,8 +137,8 @@ struct XTIER_choice os_choices[] = {
 		.sub_question = NULL,
 	},
 	{
-		.choice = XTIER_OS_UBUNTU_32,
-		.description = "Ubuntu Server 32-bit",
+		.choice = XTIER_OS_LINUX_32,
+		.description = "GNU/Linux 32-bit",
 		.sub_question = NULL,
 	},
 };
@@ -787,7 +787,7 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		// Make sure the OS is set
 		if(_XTIER.os == XTIER_OS_UNKNOWN)
 		{
-			_XTIER.os = XTIER_OS_UBUNTU_64;
+			_XTIER.os = XTIER_OS_LINUX_64;
 			XTIER_ioctl(XTIER_IOCTL_SET_GLOBAL_XTIER_STATE, &_XTIER);
 		}
 
@@ -1202,7 +1202,7 @@ int XTIER_question_event_inject_select_module(const char *cmdline)
 			return ret;
 		}
 
-		if(_XTIER.os == XTIER_OS_UBUNTU_64)
+		if(_XTIER.os == XTIER_OS_LINUX_64)
 		{
 			// Open system call:   system call table address + (nr_sys_open (2) * 8)
 			// inject.event_address = 0xffffffff816002e0 + (2 * 8);
@@ -1225,7 +1225,7 @@ int XTIER_question_event_inject_select_module(const char *cmdline)
 			return ret;
 		}
 
-		if(_XTIER.os == XTIER_OS_UBUNTU_64)
+		if(_XTIER.os == XTIER_OS_LINUX_64)
 		{
 			// Open system call:   system call table address + (nr_sys_open (2) * 8)
 			// inject.event_address = 0xffffffff816002e0 + (2 * 8);
@@ -1290,17 +1290,17 @@ int XTIER_question_specify_os(const char *cmdline)
 
 	choice = atoi(cmdline);
 
-	if(choice == XTIER_OS_UBUNTU_64)
+	if(choice == XTIER_OS_LINUX_64)
 	{
-		PRINT_OUTPUT("\t-> OS will be set to 'Ubuntu 64-bit'\n");
+		PRINT_OUTPUT("\t-> OS will be set to 'GNU/Linux 64-bit'\n");
 	}
 	else if(choice == XTIER_OS_WINDOWS_7_32)
 	{
 		PRINT_OUTPUT("\t-> OS will be set to 'Windows 7 32-bit'\n");
 	}
-	else if(choice == XTIER_OS_UBUNTU_32)
+	else if(choice == XTIER_OS_LINUX_32)
 	{
-		PRINT_OUTPUT("\t-> OS will be set to 'Ubuntu 32-bit'\n");
+		PRINT_OUTPUT("\t-> OS will be set to 'GNU/Linux 32-bit'\n");
 	}
 	else
 	{
