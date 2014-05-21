@@ -2757,6 +2757,7 @@ hwaddr gva_to_hva(CPUState *state, hwaddr gvaddr)
 
     hwaddr hva = (hwaddr)qemu_get_ram_ptr(section->mr->ram_addr);
     hva -= section->offset_within_address_space;
+    hva += section->offset_within_region;
     hva += guest_phys_addr;
 
     return hva;
