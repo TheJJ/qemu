@@ -272,6 +272,8 @@ static void _XTIER_init(void)
 	// Allocate memory within the guest
 	inject_memory = g_malloc(sizeof(*inject_memory));
 
+	printf("[inject memory] = %p\n", inject_memory);
+
 	if (!inject_memory)
 		PRINT_ERROR("Could not allocate memory");
 

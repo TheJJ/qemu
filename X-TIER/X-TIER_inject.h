@@ -47,6 +47,6 @@ struct XTIER_x86_call_registers
  * Handle a hypercall from an injected module.
  */
 void XTIER_inject_handle_interrupt(CPUState *env,
-		                           struct XTIER_external_command_redirect *redirect);
+                                   struct XTIER_external_command_redirect *redirect);
 
 #endif /* XTIER_INJECT_H_ */

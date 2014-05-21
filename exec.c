@@ -2666,47 +2666,6 @@ bool virtio_is_big_endian(void)
 
 #endif
 
-/*
- * Translate the given guest virtual address in a host virtual address.
- */
-hwaddr gva_to_hva(CPUState *state, hwaddr addr)
-{
-	hwaddr page = 0;
-	hwaddr phys_addr = 0;
-	MemoryRegionSection *section;
-
-	// Get physical address
-	page = addr & TARGET_PAGE_MASK;
-	phys_addr = cpu_get_phys_page_debug(state, page);
-
-	// Mapping found?
-	if (phys_addr == -1)
-		return -1;
-
-	phys_addr += (addr & ~TARGET_PAGE_MASK);
-
-	// Get Host Virtual address
-	page = phys_addr & TARGET_PAGE_MASK;
-
-	struct AddressSpaceDispatch *mem_dispatch = address_space_memory.dispatch;
-
-	// Get section
-	section = phys_page_find(mem_dispatch->phys_map,
-		page >> TARGET_PAGE_BITS,
-		mem_dispatch->nodes,
-		mem_dispatch->sections);
-
-	if (!memory_region_is_ram(section->mr)) {
-		return -1;
-	}
-
-	hwaddr hva = (hwaddr)qemu_get_ram_ptr(section->mr->ram_addr);
-	hva -= section->offset_within_address_space;
-	hva += section->offset_within_region;
-
-	return hva;
-}
-
 #ifndef CONFIG_USER_ONLY
 bool cpu_physical_memory_is_io(hwaddr phys_addr)
 {
@@ -2728,4 +2687,79 @@ void qemu_ram_foreach_block(RAMBlockIterFunc func, void *opaque)
         func(block->host, block->offset, block->length, opaque);
     }
 }
+
+
+/**
+ * Translate the given guest virtual address in a host virtual address.
+ */
+hwaddr gva_to_hva(CPUState *state, hwaddr gvaddr)
+{
+    hwaddr gva_page = 0;
+    hwaddr gpa_page = 0;
+    hwaddr guest_phys_addr = 0;
+
+    // Get physical address
+    gva_page = gvaddr & TARGET_PAGE_MASK;
+    guest_phys_addr = cpu_get_phys_page_debug(state, gva_page);
+
+    // Mapping found?
+    if (guest_phys_addr == -1) {
+        return -1;
+    }
+
+    // page offset of destination addr to physical address
+    hwaddr page_offset = (gvaddr & ~TARGET_PAGE_MASK);
+
+    guest_phys_addr += page_offset;
+
+    // get page of guest physical address
+    gpa_page = guest_phys_addr & TARGET_PAGE_MASK;
+
+    struct AddressSpaceDispatch *mem_dispatch = address_space_memory.dispatch;
+
+    // get section
+    MemoryRegionSection *section = phys_page_find(mem_dispatch->phys_map,
+                                                  gpa_page >> TARGET_PAGE_BITS,
+                                                  mem_dispatch->nodes,
+                                                  mem_dispatch->sections);
+
+    if (!memory_region_is_ram(section->mr)) {
+        return -1;
+    }
+
+    /*
+      X. TODO: do magic things
+      X. Get a pointer to the RAM region
+      X. To get the HVA pointer, we need to substract the offset from the
+         beginning of the RAM region and then add the physical address we
+         obtained above.  This will effectively add the offset of the pysical
+         address to the RAM pointer, which is the HVA.
+
+
+       visualization: we want to get the host virtual address of #
+
+                       +---- host alloc'd mem chunk ---+
+                       |                               |
+       0x00            v                               v        0xFFFFFFF
+       {               [                          #    ]        } guest phys memory end
+       ^               ^                          |
+       | guest         ram region                 |
+       | phys mem      |                          |<- destination guest phys addr
+       |               |<--  resulting offset  -->|
+       \---------------/                          |
+       |         ^                                |
+       |         offset_within_address_space      |
+       |                                          |
+       \------------------------------------------/
+                 ^
+                 guest_phys_addr
+     */
+
+    hwaddr hva = (hwaddr)qemu_get_ram_ptr(section->mr->ram_addr);
+    hva -= section->offset_within_address_space;
+    hva += guest_phys_addr;
+
+    return hva;
+}
+
 #endif
