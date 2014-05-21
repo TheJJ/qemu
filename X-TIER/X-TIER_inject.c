@@ -124,9 +124,6 @@ static void XTIER_inject_handle_printk(CPUState *state, struct kvm_regs *regs)
 	printf_ptr = &printf;
 	//printf("[kernel printf]\n");
 
-	printf("PRINTF: rdi: %llx\nrsi: %llx\nrdx: %llx\nrcx: %llx\nr8: %llx\nr9: %llx\n",
-	       call_regs.rdi, call_regs.rsi, call_regs.rdx, call_regs.rcx, call_regs.r8, call_regs.r9);
-
 	__asm__ volatile(
 		"movq %0, %%rdi;"
 		"movq %1, %%rsi;"
