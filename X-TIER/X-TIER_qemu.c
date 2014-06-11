@@ -272,7 +272,7 @@ static void _XTIER_init(void)
 	// Allocate memory within the guest
 	inject_memory = g_malloc(sizeof(*inject_memory));
 
-	printf("[inject memory] = %p\n", inject_memory);
+	printf("[inject memory in-guest] = %p\n", inject_memory);
 
 	if (!inject_memory)
 		PRINT_ERROR("Could not allocate memory");
@@ -684,7 +684,7 @@ void XTIER_switch_to_monitor_mode_keep_paused(const char *cmdline)
 
 void XTIER_command_receive_external_command(const char *cmdline)
 {
-	const char *filename = XTIER_EXTERNAL_COMMAND_PIPE;
+	const char *cmd_pipe_filename = XTIER_EXTERNAL_COMMAND_PIPE;
 
 	char *prev_module_name = NULL;
 	char *prev_module_code = NULL;
@@ -693,29 +693,31 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	int ret = 0;
 
 	// Create named pipe - User Read, Write, Exec
-	if (!_external_command_fd && mkfifo(filename, S_IRWXU) != 0)
-	{
-		if (errno != EEXIST)
-		{
-			PRINT_ERROR("Could not create named pipe '%s'!\n", filename);
-			return;
+	if (!_external_command_fd) {
+		if (mkfifo(cmd_pipe_filename, S_IRWXU) == 0) {
+			PRINT_INFO("created cmd external->x-tier fifo %s", cmd_pipe_filename);
+		}
+		else {
+			if (errno != EEXIST) {
+				PRINT_ERROR("Could not create named pipe '%s'!\n", cmd_pipe_filename);
+				return;
+			}
 		}
 	}
 
 	// Open the fd
-	if (!_external_command_fd && (_external_command_fd = open(filename, O_RDONLY)) < 0)
-	{
-		PRINT_ERROR("Could not open fd to named pipe '%s'!\n", filename);
-		return;
+	if (!_external_command_fd) {
+		if ((_external_command_fd = open(cmd_pipe_filename, O_RDONLY)) < 0) {
+			PRINT_ERROR("Could not open fd to named pipe '%s'!\n", cmd_pipe_filename);
+			return;
+		}
 	}
 
-	PRINT_INFO("Opened named pipe '%s' for reading...\n", filename);
+	PRINT_INFO("Opened named pipe '%s' for reading...\n", cmd_pipe_filename);
 	PRINT_INFO("Waiting for Input... Process will be blocked!\n");
 
 	// Get cmd
-	if (read(_external_command_fd, &_external_command, sizeof(struct XTIER_external_command)) !=
-	    sizeof(struct XTIER_external_command))
-	{
+	if (read(_external_command_fd, &_external_command, sizeof(struct XTIER_external_command)) != sizeof(struct XTIER_external_command)) {
 		PRINT_ERROR("An error occurred while receiving the command struct. Aborting...\n");
 		return;
 	}
@@ -723,13 +725,9 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	PRINT_DEBUG("Received command structure...\n");
 
 	// Output redirection?
-	if (_external_command.redirect != NONE)
-	{
+	if (_external_command.redirect != NONE) {
 		// Get the redirection struct
-		if (read(_external_command_fd, &_external_command_redirect,
-		         sizeof(struct XTIER_external_command_redirect)) !=
-		    sizeof(struct XTIER_external_command_redirect))
-		{
+		if (read(_external_command_fd, &_external_command_redirect, sizeof(struct XTIER_external_command_redirect)) != sizeof(struct XTIER_external_command_redirect)) {
 			PRINT_ERROR("An error occurred while receiving the redirect struct. Aborting...\n");
 			return;
 		}
@@ -743,11 +741,9 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		// This must be done here to ensure that the BEGIN marker is sent!
 
 		// Is this a pipe redirection?
-		if (_external_command_redirect.type == PIPE)
-		{
+		if (_external_command_redirect.type == PIPE) {
 			// Check if we must open the file
-			if (!_external_command_redirect.stream)
-			{
+			if (!_external_command_redirect.stream) {
 				_external_command_redirect.stream = fopen(_external_command_redirect.filename, "w");
 
 				if (_external_command_redirect.stream <= 0)
@@ -759,25 +755,24 @@ void XTIER_command_receive_external_command(const char *cmdline)
 				// We just opened the file, so we send the data begin header
 				fprintf(_external_command_redirect.stream, "" XTIER_EXTERNAL_OUTPUT_BEGIN);
 			}
+		} else {
+			PRINT_DEBUG("unhandled output redirection type requested.");
 		}
 	}
 
 	// Get the command itself
-	if (_external_command.type == INJECTION)
-	{
+	if (_external_command.type == INJECTION) {
 		// Injection command
 		// Free old injection structure if there is any
-		if (_injection)
-		{
+		if (_injection) {
 			// Save old path and code
 			prev_module_name = malloc(_injection->path_len);
 			prev_module_code = _injection->code;
 			prev_module_code_len = _injection->code_len;
 
-			if (prev_module_name)
+			if (prev_module_name) {
 				strcpy(prev_module_name, _injection->module_path);
-			else
-			{
+			} else {
 				PRINT_ERROR("Could not reserve memory!\n");
 				return;
 			}
@@ -785,10 +780,8 @@ void XTIER_command_receive_external_command(const char *cmdline)
 			free_injection_without_code(_injection);
 		}
 
-
 		// Make sure the OS is set
-		if(_XTIER.os == XTIER_OS_UNKNOWN)
-		{
+		if(_XTIER.os == XTIER_OS_UNKNOWN) {
 			_XTIER.os = XTIER_OS_LINUX_64;
 			XTIER_ioctl(XTIER_IOCTL_SET_GLOBAL_XTIER_STATE, &_XTIER);
 		}
@@ -797,31 +790,32 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		_injection = injection_from_fd(_external_command_fd);
 
 		// Read in data if required
-		if (_injection->code_len == 0 && (!prev_module_name || strcmp(_injection->module_path, prev_module_name)))
-		{
+		if (_injection->code_len == 0 && (!prev_module_name || strcmp(_injection->module_path, prev_module_name))) {
 			// free prev data
-			if (prev_module_code)
+			if (prev_module_code) {
 				free(prev_module_code);
+			}
 
 			injection_load_code(_injection);
 		}
-		else if(prev_module_name && !strcmp(_injection->module_path, prev_module_name))
-		{
+		else if (prev_module_name && !strcmp(_injection->module_path, prev_module_name)) {
 			PRINT_DEBUG("Reusing existing code!\n");
 			_injection->code_len = prev_module_code_len;
 			_injection->code = prev_module_code;
 		}
 
 		// Free old name if any
-		if (prev_module_name)
+		if (prev_module_name) {
 			free(prev_module_name);
+		}
 
 		// Inject
 		PRINT_DEBUG("Injecting file %s which consists of %d bytes...\n", _injection->module_path, _injection->code_len);
 		ret =  XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
 
-		if(ret < 0)
+		if (ret < 0) {
 			PRINT_ERROR("An error occurred while injecting the file!\n");
+		}
 
 		// Synchronize new cpu_state
 		cpu_state->kvm_vcpu_dirty = 0; // Force the sync
@@ -829,16 +823,16 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 		// fprintf(stderr, "RIP now: 0x%llx\n", cpu_state->eip);
 	}
-	else
-	{
+	else {
 		// Unknown command
 		PRINT_ERROR("Unkown command type (%d)\n", _external_command.type);
 		return;
 	}
 
 	// Close fd and remove pipe
-	//close(fd);
-	//remove(filename);
+	close(_external_command_fd);
+	remove(cmd_pipe_filename);
+	_external_command_fd = 0;
 }
 
 void XTIER_command_inject(const char *cmdline)

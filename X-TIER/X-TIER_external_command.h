@@ -13,7 +13,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define XTIER_EXTERNAL_COMMAND_PIPE "/tmp/qemu_XTIER_external_command_pipe"
+// pipe file to use as transfer
+#define XTIER_EXTERNAL_COMMAND_PIPE "/tmp/pipe_ext_to_x-tier"
+
+/* OUTPUT Delimiters for external data transfers. */
+#define XTIER_EXTERNAL_OUTPUT_BEGIN "####### X-TIER OUTPUT BEGIN #######"
+#define XTIER_EXTERNAL_OUTPUT_END "####### X-TIER OUTPUT END #######"
+
 
 // The return value has exactly 19 characters
 // "0x" followed by +/- followed by 16 hexadecimal characters

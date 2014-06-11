@@ -13,7 +13,7 @@
 
 #include "../X-TIER-base/X-TIER.h"
 
-// PROMPT
+// user prompt for x-tier interactive shell
 #define XTIER_PROMPT "(X-TIER >> "
 
 extern struct XTIER_state _XTIER;
@@ -43,7 +43,7 @@ void XTIER_switch_to_XTIER_mode(CPUState *env);
 int XTIER_ioctl(unsigned int command, void *arg);
 
 // X-TIER COMMAND HANDLERS
-// THESE SHOULD NOT BE CALLED! THEY ONLY EXIT FOR INPUT HANDLING.
+// THESE SHOULD NOT BE CALLED! THEY ONLY EXIST FOR INPUT HANDLING.
 /**
  * Switch to the monitor, but keep the VM paused.
  */

@@ -13,15 +13,29 @@
 #define DEBUG_LEVEL 5
 
 
-#define msg_print(level, level_string, fmt, ...) \
-        do { if (DEBUG_LEVEL >= level) monitor_printf(default_mon, "[ X-TIER - %s ] %d : %s(): " fmt, \
-                 level_string, __LINE__, __func__, ##__VA_ARGS__); } while (0)
+#if 0 //1 for monitor printing
+#define msg_print(level, level_string, fmt, ...)\
+        do {\
+            if (DEBUG_LEVEL >= level) {\
+                monitor_printf(default_mon, "[ X-TIER - %s ] %d : %s(): " fmt, \
+                               level_string, __LINE__, __func__, ##__VA_ARGS__);\
+            }\
+        } while (0)
+#else
+#define msg_print(level, level_string, fmt, ...)\
+        do {\
+            if (DEBUG_LEVEL >= level) {\
+                printf("[ X-TIER - %s ] %d : %s(): " fmt, \
+                       level_string, __LINE__, __func__, ##__VA_ARGS__);\
+            }\
+        } while (0)
+#endif
 
 
-#define PRINT_DEBUG(fmt, ...) msg_print(DEBUG, "DEBUG", fmt, ##__VA_ARGS__)
-#define PRINT_INFO(fmt, ...) msg_print(INFO, "INFO", fmt, ##__VA_ARGS__)
+#define PRINT_DEBUG(fmt, ...)   msg_print(DEBUG,   "DEBUG",   fmt, ##__VA_ARGS__)
+#define PRINT_INFO(fmt, ...)    msg_print(INFO,    "INFO",    fmt, ##__VA_ARGS__)
 #define PRINT_WARNING(fmt, ...) msg_print(WARNING, "WARNING", fmt, ##__VA_ARGS__)
-#define PRINT_ERROR(fmt, ...) msg_print(ERROR, "ERROR", fmt, ##__VA_ARGS__)
+#define PRINT_ERROR(fmt, ...)   msg_print(ERROR,   "ERROR",   fmt, ##__VA_ARGS__)
 
 
 /*
