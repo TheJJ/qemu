@@ -831,7 +831,6 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 	// Close fd and remove pipe
 	close(_external_command_fd);
-	remove(cmd_pipe_filename);
 	_external_command_fd = 0;
 }
 
