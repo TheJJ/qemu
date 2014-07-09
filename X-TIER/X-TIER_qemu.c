@@ -1255,7 +1255,7 @@ int XTIER_question_event_inject_select_module(const char *cmdline)
 	_injection->time_inject = 0;
 
 	// Args
-	_injection->args = 0;
+	_injection->argv = NULL;
 	_injection->args_size = 0;
 	_injection->size_last_arg = 0;
 
