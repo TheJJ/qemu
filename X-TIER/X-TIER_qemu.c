@@ -790,7 +790,7 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		_injection = injection_from_fd(_external_command_fd);
 
 		// Read in data if required
-		if (_injection->code_len == 0 && (!prev_module_name || strcmp(_injection->module_path, prev_module_name))) {
+		if (_injection->code_len == 0) { //(!prev_module_name || strcmp(_injection->module_path, prev_module_name))) {
 			// free prev data
 			if (prev_module_code) {
 				free(prev_module_code);
@@ -798,7 +798,7 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 			injection_load_code(_injection);
 		}
-		else if (prev_module_name && !strcmp(_injection->module_path, prev_module_name)) {
+		else if (false && prev_module_name && !strcmp(_injection->module_path, prev_module_name)) {
 			PRINT_DEBUG("Reusing existing code!\n");
 			_injection->code_len = prev_module_code_len;
 			_injection->code = prev_module_code;
