@@ -13,18 +13,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "../X-TIER-base/X-TIER.h"
+
 // pipe file to use as transfer
 #define XTIER_EXTERNAL_COMMAND_PIPE "/tmp/pipe_ext_to_x-tier"
-
-/* OUTPUT Delimiters for external data transfers. */
-#define XTIER_EXTERNAL_OUTPUT_BEGIN "####### X-TIER OUTPUT BEGIN #######"
-#define XTIER_EXTERNAL_OUTPUT_END "####### X-TIER OUTPUT END #######"
-
-
-// The return value has exactly 19 characters
-// "0x" followed by +/- followed by 16 hexadecimal characters
-#define XTIER_EXTERNAL_COMMAND_RETURN_VALUE_FORMAT "0x%016lx"
-#define XTIER_EXTERNAL_COMMAND_RETURN_VALUE_SIZE 18
 
 /*
  * Structs for receiving external commands.
@@ -55,7 +47,7 @@ struct XTIER_external_command_redirect
 	// Type
 	enum externel_command_redirect type;
 	// Pipe or socket name
-	char filename[255];
+	char filename[2048];
 	// Stream for the opened file
 	FILE *stream;
 };

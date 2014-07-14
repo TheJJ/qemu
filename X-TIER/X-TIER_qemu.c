@@ -691,11 +691,12 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	unsigned int prev_module_code_len = 0;
 
 	int ret = 0;
+	int n = 0, m = 0;
 
 	// Create named pipe - User Read, Write, Exec
 	if (!_external_command_fd) {
 		if (mkfifo(cmd_pipe_filename, S_IRWXU) == 0) {
-			PRINT_INFO("created cmd external->x-tier fifo %s", cmd_pipe_filename);
+			PRINT_INFO("created cmd external->x-tier fifo %s\n", cmd_pipe_filename);
 		}
 		else {
 			if (errno != EEXIST) {
@@ -716,9 +717,13 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	PRINT_INFO("Opened named pipe '%s' for reading...\n", cmd_pipe_filename);
 	PRINT_INFO("Waiting for Input... Process will be blocked!\n");
 
-	// Get cmd
-	if (read(_external_command_fd, &_external_command, sizeof(struct XTIER_external_command)) != sizeof(struct XTIER_external_command)) {
-		PRINT_ERROR("An error occurred while receiving the command struct. Aborting...\n");
+
+	n = read(_external_command_fd, &_external_command, sizeof(struct XTIER_external_command));
+
+	m = sizeof(struct XTIER_external_command) - n;
+
+	if (m != 0) {
+		PRINT_ERROR("Wrong size when receiving the command struct: size off %d, read %d. Aborting...\n", m, n);
 		return;
 	}
 
@@ -726,35 +731,30 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 	// Output redirection?
 	if (_external_command.redirect != NONE) {
+
 		// Get the redirection struct
-		if (read(_external_command_fd, &_external_command_redirect, sizeof(struct XTIER_external_command_redirect)) != sizeof(struct XTIER_external_command_redirect)) {
-			PRINT_ERROR("An error occurred while receiving the redirect struct. Aborting...\n");
+		if (read(_external_command_fd, &_external_command_redirect, sizeof(struct XTIER_external_command_redirect))
+		    != sizeof(struct XTIER_external_command_redirect)) {
+			PRINT_ERROR("Wrong size reading the redirect struct. Aborting...\n");
 			return;
 		}
 
 		PRINT_DEBUG("Received redirect structure...\n");
 
-		// Make sure the steam is NULL
+		// Make sure the data redirection steam is NULL
 		_external_command_redirect.stream = NULL;
-
-		// Try to open file
-		// This must be done here to ensure that the BEGIN marker is sent!
 
 		// Is this a pipe redirection?
 		if (_external_command_redirect.type == PIPE) {
-			// Check if we must open the file
-			if (!_external_command_redirect.stream) {
-				_external_command_redirect.stream = fopen(_external_command_redirect.filename, "w");
+			_external_command_redirect.stream = fopen(_external_command_redirect.filename, "w");
 
-				if (_external_command_redirect.stream <= 0)
-				{
-					PRINT_ERROR("Could not open file '%s'\n", _external_command_redirect.filename);
-					return;
-				}
-
-				// We just opened the file, so we send the data begin header
-				fprintf(_external_command_redirect.stream, "" XTIER_EXTERNAL_OUTPUT_BEGIN);
+			if (_external_command_redirect.stream <= 0) {
+				PRINT_ERROR("Could not open file '%s'\n", _external_command_redirect.filename);
+				return;
 			}
+
+			// We just opened the file, so we send the data begin header
+			fprintf(_external_command_redirect.stream, "" XTIER_EXTERNAL_OUTPUT_BEGIN);
 		} else {
 			PRINT_DEBUG("unhandled output redirection type requested.");
 		}
@@ -810,8 +810,13 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		}
 
 		// Inject
-		PRINT_DEBUG("Injecting file %s which consists of %d bytes...\n", _injection->module_path, _injection->code_len);
-		ret =  XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
+		PRINT_DEBUG("Injecting file %s...\n", _injection->module_path);
+		PRINT_DEBUG("|_ consists of %d bytes code\n", _injection->code_len);
+		PRINT_DEBUG("|_ consists of %d arguments of overall size %u\n", _injection->argc, _injection->args_size);
+		print_injection(_injection);
+
+		PRINT_DEBUG("ioctl for injection NOW!\n");
+		ret = XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
 
 		if (ret < 0) {
 			PRINT_ERROR("An error occurred while injecting the file!\n");
@@ -1325,7 +1330,7 @@ void XTIER_synchronize_state(CPUState *state)
  */
 int XTIER_handle_exit(CPUState *env, u64 exit_reason)
 {
-	PRINT_DEBUG("Handling EXIT: %lld...\n", exit_reason);
+	PRINT_DEBUG("Handling kvm EXIT: %llx...\n", exit_reason);
 
 	int ret = 0;
 

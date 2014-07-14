@@ -172,29 +172,11 @@ static void XTIER_inject_handle_data_transfer(CPUState *state,
 	// DEBUG
 	PRINT_DEBUG("Received %ld bytes of data from %p (orig was %p)\n", size, data_on_host, data);
 
-	if (redirect)
-	{
+	if (redirect) {
 		// Is this a pipe redirection?
-		if (redirect->type == PIPE)
-		{
-			// Check if we must open the file
-			if (!redirect->stream)
-			{
-				redirect->stream = fopen(redirect->filename, "w");
-
-				if (redirect->stream <= 0)
-				{
-					PRINT_ERROR("Could not open file '%s'\n", redirect->filename);
-					return;
-				}
-
-				// We just opened the file, so we send the data begin header
-				fprintf(redirect->stream, "" XTIER_EXTERNAL_OUTPUT_BEGIN);
-			}
-
+		if (redirect->type == PIPE) {
 			// Print data to file if the type is PIPE
-			for (i = 0; i < size; i++)
-			{
+			for (i = 0; i < size; i++) {
 				fprintf(redirect->stream, "%c", *(data_on_host + i));
 			}
 		}
