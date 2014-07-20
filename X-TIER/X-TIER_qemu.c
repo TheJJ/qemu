@@ -715,11 +715,9 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	}
 
 	PRINT_INFO("Opened named pipe '%s' for reading...\n", cmd_pipe_filename);
-	PRINT_INFO("Waiting for Input... Process will be blocked!\n");
-
+	PRINT_INFO("Waiting for external command struct... Process will be blocked!\n");
 
 	n = read(_external_command_fd, &_external_command, sizeof(struct XTIER_external_command));
-
 	m = sizeof(struct XTIER_external_command) - n;
 
 	if (m != 0) {
@@ -758,6 +756,8 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		} else {
 			PRINT_DEBUG("unhandled output redirection type requested.");
 		}
+	} else {
+		//no output redirection requested
 	}
 
 	// Get the command itself
@@ -817,6 +817,7 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 		PRINT_DEBUG("ioctl for injection NOW!\n");
 		ret = XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
+		PRINT_DEBUG("returned from injection with return value %d\n", ret);
 
 		if (ret < 0) {
 			PRINT_ERROR("An error occurred while injecting the file!\n");
@@ -834,9 +835,9 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		return;
 	}
 
-	// Close fd and remove pipe
-	close(_external_command_fd);
-	_external_command_fd = 0;
+	//keep the fd open for now.
+	//close(_external_command_fd);
+	//_external_command_fd = 0;
 }
 
 void XTIER_command_inject(const char *cmdline)
