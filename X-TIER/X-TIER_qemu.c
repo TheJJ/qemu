@@ -615,11 +615,12 @@ void XTIER_handle_input(Monitor *mon, const char *cmdline, void *opaque)
 	}
 	else
 	{
-		PRINT_ERROR("Unknown Command.\n");
+		PRINT_ERROR("Unknown Command: %s\n", cmdline);
 	}
 
-	if(strcmp(cmdline, "cont") && strcmp(cmdline, "quit") && strcmp(cmdline, "exit"))
+	if(strcmp(cmdline, "cont") && strcmp(cmdline, "quit") && strcmp(cmdline, "exit")) {
 		PRINT_OUTPUT(XTIER_PROMPT);
+	}
 }
 
 /*
@@ -684,7 +685,6 @@ void XTIER_switch_to_monitor_mode_keep_paused(const char *cmdline)
 
 void XTIER_command_receive_external_command(const char *cmdline)
 {
-	const char *cmd_pipe_filename = XTIER_EXTERNAL_COMMAND_PIPE;
 
 	char *prev_module_name = NULL;
 	char *prev_module_code = NULL;
@@ -695,26 +695,28 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 	// Create named pipe - User Read, Write, Exec
 	if (!_external_command_fd) {
-		if (mkfifo(cmd_pipe_filename, S_IRWXU) == 0) {
-			PRINT_INFO("created cmd external->x-tier fifo %s\n", cmd_pipe_filename);
+		if (mkfifo(injection_input_pipe_filename, S_IRWXU) == 0) {
+			PRINT_INFO("created cmd external->x-tier fifo %s\n", injection_input_pipe_filename);
 		}
 		else {
 			if (errno != EEXIST) {
-				PRINT_ERROR("Could not create named pipe '%s'!\n", cmd_pipe_filename);
+				PRINT_ERROR("Could not create named pipe '%s'!\n", injection_input_pipe_filename);
 				return;
+			} else {
+				PRINT_INFO("cmd external->x-tier pipe %s already present\n", injection_input_pipe_filename);
 			}
 		}
 	}
 
 	// Open the fd
 	if (!_external_command_fd) {
-		if ((_external_command_fd = open(cmd_pipe_filename, O_RDONLY)) < 0) {
-			PRINT_ERROR("Could not open fd to named pipe '%s'!\n", cmd_pipe_filename);
+		if ((_external_command_fd = open(injection_input_pipe_filename, O_RDONLY)) < 0) {
+			PRINT_ERROR("Could not open fd to named pipe '%s'!\n", injection_input_pipe_filename);
 			return;
 		}
 	}
 
-	PRINT_INFO("Opened named pipe '%s' for reading...\n", cmd_pipe_filename);
+	PRINT_INFO("Opened named pipe '%s' for reading...\n", injection_input_pipe_filename);
 	PRINT_INFO("Waiting for external command struct... Process will be blocked!\n");
 
 	n = read(_external_command_fd, &_external_command, sizeof(struct XTIER_external_command));

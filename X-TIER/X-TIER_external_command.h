@@ -16,7 +16,7 @@
 #include "../X-TIER-base/X-TIER.h"
 
 // pipe file to use as transfer
-#define XTIER_EXTERNAL_COMMAND_PIPE "/tmp/pipe_ext_to_x-tier"
+#define injection_input_pipe_filename "/tmp/pipe_ext_to_x-tier"
 
 /*
  * Structs for receiving external commands.
