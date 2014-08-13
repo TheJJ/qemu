@@ -64,11 +64,11 @@ static inline void XTIER_external_command_send_return_value(FILE *stream, long v
 	fprintf(stream, "" XTIER_EXTERNAL_COMMAND_RETURN_VALUE_FORMAT, value);
 }
 
-static inline long XTIER_external_command_extract_return_value(char *data, long data_size)
+static inline int64_t XTIER_external_command_extract_return_value(char *data, long data_size)
 {
 	char **endptr = NULL;
 
-	return (signed long)strtoul(data + data_size - XTIER_EXTERNAL_COMMAND_RETURN_VALUE_SIZE, endptr, 16);
+	return (int64_t)strtoul(data + data_size - XTIER_EXTERNAL_COMMAND_RETURN_VALUE_SIZE, endptr, 16);
 }
 
 

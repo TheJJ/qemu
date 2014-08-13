@@ -819,10 +819,11 @@ void XTIER_command_receive_external_command(const char *cmdline)
 
 		PRINT_DEBUG("ioctl for injection NOW!\n");
 		ret = XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
-		PRINT_DEBUG("returned from injection with return value %d\n", ret);
-
 		if (ret < 0) {
-			PRINT_ERROR("An error occurred while injecting the file!\n");
+			PRINT_ERROR("error occurred while injecting the file: %d\n", ret);
+		}
+		else {
+			PRINT_DEBUG("returned %d from injection ioctl\n", ret);
 		}
 
 		// Synchronize new cpu_state
@@ -888,8 +889,7 @@ static long XTIER_print_injection_performance(void)
 	// Get performacne data
 	ret = XTIER_ioctl(XTIER_IOCTL_INJECT_GET_PERFORMANCE, &perf);
 
-	if(ret < 0)
-	{
+	if(ret < 0) {
 		PRINT_ERROR("An error occurred while obtaining the performance data of the injection!\n");
 		return ret;
 	}
@@ -901,8 +901,7 @@ static long XTIER_print_injection_performance(void)
 	PRINT_OUTPUT("\t | Temp Removals/Resumes: %u\n", perf.temp_removals);
 	PRINT_OUTPUT("\t | Hypercalls: %u\n", perf.hypercalls);
 
-	if(perf.injections)
-	{
+	if (perf.injections) {
 		XTIER_ns_to_time(perf.total_module_load_time / perf.injections, &t);
 		PRINT_OUTPUT("\t | Average Load Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 		XTIER_ns_to_time(perf.total_module_exec_time / perf.injections, &t);
@@ -912,8 +911,7 @@ static long XTIER_print_injection_performance(void)
 
 		PRINT_OUTPUT("\t |\n");
 
-		if(perf.hypercalls)
-		{
+		if(perf.hypercalls) {
 			XTIER_ns_to_time(perf.total_module_hypercall_time / perf.hypercalls, &t);
 			PRINT_OUTPUT("\t | Average Hypercall Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 
@@ -926,8 +924,7 @@ static long XTIER_print_injection_performance(void)
 			PRINT_OUTPUT("\t |\n");
 		}
 
-		if(perf.temp_removals)
-		{
+		if(perf.temp_removals) {
 			XTIER_ns_to_time(perf.total_module_temp_removal_time / perf.temp_removals, &t);
 			PRINT_OUTPUT("\t | Average Temp Removal Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 
@@ -952,22 +949,19 @@ static long XTIER_print_injection_performance(void)
 		                 / perf.injections, &t);
 		PRINT_OUTPUT("\t | Average Total Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 
-		if(perf.temp_removals)
-		{
+		if(perf.temp_removals) {
 			XTIER_ns_to_time((perf.total_module_exec_time -
 			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time))
 			                 / perf.injections, &t);
 			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP Removal/Resume: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 		}
 
-		if(perf.hypercalls)
-		{
+		if(perf.hypercalls) {
 			XTIER_ns_to_time((perf.total_module_exec_time - perf.total_module_hypercall_time) / perf.injections, &t);
 			PRINT_OUTPUT("\t | Average Exec Time w/o Hypercalls: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
 		}
 
-		if(perf.temp_removals && perf.hypercalls)
-		{
+		if(perf.temp_removals && perf.hypercalls) {
 			XTIER_ns_to_time((perf.total_module_exec_time -
 			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time + perf.total_module_hypercall_time))
 			                 / perf.injections, &t);
@@ -988,14 +982,13 @@ static long XTIER_print_injection_performance(void)
 static void XTIER_handle_injection_finished(void)
 {
 	// Print performance data
-	long return_value = XTIER_print_injection_performance();
+	int64_t return_value = XTIER_print_injection_performance();
 
-	PRINT_OUTPUT("Injection Finished (Return value %ld)!\n", return_value);
+	PRINT_OUTPUT("Injection finished (return value %ld)!\n", return_value);
+	PRINT_INFO("Injection finished (return value %ld)!\n", return_value);
 
 	// Notify waiting applications if any
-	if (_external_command_redirect.type != NONE &&
-	    _external_command_redirect.stream)
-	{
+	if (_external_command_redirect.type != NONE && _external_command_redirect.stream) {
 		// Send Return Value
 		XTIER_external_command_send_return_value(_external_command_redirect.stream, return_value);
 
