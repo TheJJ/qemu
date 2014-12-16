@@ -880,7 +880,7 @@ static void XTIER_ns_to_time(u64 ns, struct XTIER_time *time)
 /*
  * Returns the return value of the injection.
  */
-static long XTIER_print_injection_performance(void)
+static struct XTIER_performance XTIER_print_injection_performance(void)
 {
 	int ret;
 	struct XTIER_time t;
@@ -889,9 +889,10 @@ static long XTIER_print_injection_performance(void)
 	// Get performacne data
 	ret = XTIER_ioctl(XTIER_IOCTL_INJECT_GET_PERFORMANCE, &perf);
 
-	if(ret < 0) {
+	if (ret < 0) {
 		PRINT_ERROR("An error occurred while obtaining the performance data of the injection!\n");
-		return ret;
+		perf.return_value = ret;
+		return perf;
 	}
 
 	// Print statistics
@@ -976,16 +977,18 @@ static long XTIER_print_injection_performance(void)
 
 	PRINT_OUTPUT("\t ___________________________________\n\n");
 
-	return perf.return_value;
+	return perf;
 }
 
 static void XTIER_handle_injection_finished(void)
 {
 	// Print performance data
-	int64_t return_value = XTIER_print_injection_performance();
+	struct XTIER_performance perf = XTIER_print_injection_performance();
+	int64_t return_value = perf.return_value;
 
 	PRINT_OUTPUT("Injection finished (return value %ld)!\n", return_value);
 	PRINT_INFO("Injection finished (return value %ld)!\n", return_value);
+	PRINT_INFO("Injection CR3: %zx!\n", perf.cr3);
 
 	// Notify waiting applications if any
 	if (_external_command_redirect.type != NONE && _external_command_redirect.stream) {
