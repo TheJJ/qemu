@@ -68,7 +68,7 @@
 #include "hmp.h"
 #include "qemu/thread.h"
 
-#include "X-TIER/X-TIER_qemu.h"
+#include "x-tier/qemu.h"
 
 /* for pic/irq_info */
 #if defined(TARGET_SPARC)

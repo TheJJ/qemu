@@ -1,20 +1,12 @@
-/*
- * XTIER_inject.c
- *
- *  Created on: Apr 3, 2012
- *      Author: Sebastian Vogl <vogls@sec.in.tum.de>
- */
-
-
-#include "X-TIER_inject.h"
-#include "X-TIER_event_handler.h"
-#include "X-TIER_debug.h"
-#include "X-TIER_qemu.h"
+#include "inject.h"
+#include "event_handler.h"
+#include "debug.h"
+#include "qemu.h"
 
 #include "../include/sysemu/kvm.h"
 #include "../include/exec/cpu-all.h"
 
-#include "../X-TIER-base/X-TIER_hypercall.h"
+#include "/usr/src/linux/include/uapi/linux/x-tier.h"
 
 
 /*
@@ -78,10 +70,6 @@ static void XTIER_inject_transform_call_registers32(CPUState *state, struct kvm_
 	if(esp == vm_regs->rsp)
 		printf("Warning: Could not convert ESP!\n");
 
-	//printf("RSP: 0x%llx\n", esp);
-	//printf("RSP+4: 0x%llx\n", *(u64 *)(esp + 4));
-	//printf("RSP+8: 0x%llx\n", *(u64 *)(esp + 8));
-
 	call_regs->rdi = XTIER_inject_transform_call_register(state, esp + 4);
 	call_regs->rsi = XTIER_inject_transform_call_register(state, esp + 8);
 	call_regs->rdx = XTIER_inject_transform_call_register(state, esp + 12);
@@ -113,9 +101,7 @@ static void XTIER_inject_handle_printk(CPUState *state, struct kvm_regs *regs)
 
 		// Is this a normal printf or something that should be forwarded to a script?
 		// This is currently only supported for 64-bit systems.
-		if (XTIER_event_handler_print_dispatch(state, regs, &call_regs)) {
-			return;
-		}
+		//XTIER_event_handler_print_dispatch(state, regs, &call_regs));
 	}
 	else {
 		XTIER_inject_transform_call_registers32(state, regs, &call_regs);

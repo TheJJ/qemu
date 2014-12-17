@@ -34,7 +34,7 @@
 #include "hyperv.h"
 #include "hw/pci/pci.h"
 
-#include "../X-TIER/X-TIER_qemu.h"
+#include "../x-tier/qemu.h"
 
 //#define DEBUG_KVM
 

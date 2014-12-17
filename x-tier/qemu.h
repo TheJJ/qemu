@@ -1,17 +1,10 @@
-/*
- * X-TIER_qemu.h
- *
- *  Created on: Nov 14, 2011
- *      Author: Sebastian Vogl <vogls@sec.in.tum.de>
- */
-
 #ifndef XTIER_QEMU_H_
 #define XTIER_QEMU_H_
 
 #include "../include/qemu-common.h"
 #include "../include/monitor/monitor.h"
 
-#include "../X-TIER-base/X-TIER.h"
+#include "/usr/src/linux/include/uapi/linux/x-tier.h"
 
 // user prompt for x-tier interactive shell
 #define XTIER_PROMPT "(X-TIER >> "
@@ -26,7 +19,7 @@ void XTIER_handle_input(Monitor *mon, const char *cmdline, void *opaque);
 /**
  * Handle X-TIER related VM Exits.
  */
-int XTIER_handle_exit(CPUState *env, u64 exit_reason);
+int XTIER_handle_exit(CPUState *env, uint64_t exit_reason);
 
 /**
  * Switch to the X-TIER shell.

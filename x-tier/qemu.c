@@ -1,13 +1,7 @@
-/*
- * X-TIER_qemu.c
- *
- *  Created on: Nov 14, 2011
- *      Author: Sebastian Vogl <vogls@sec.in.tum.de>
- */
-#include "X-TIER_qemu.h"
-#include "X-TIER_debug.h"
-#include "X-TIER_inject.h"
-#include "X-TIER_external_command.h"
+#include "qemu.h"
+#include "debug.h"
+#include "inject.h"
+#include "external_command.h"
 
 #include "../include/sysemu/kvm.h"
 #include "../include/sysemu/sysemu.h"
@@ -50,9 +44,9 @@ typedef void (*XTIER_command_callback)(const char *cmdline);
  */
 struct XTIER_time
 {
-	u64 sec;
-	u64 ms;
-	u64 ns;
+	size_t sec;
+	size_t ms;
+	size_t ns;
 };
 
 struct XTIER_question;
@@ -107,8 +101,8 @@ int _initialized = 0;
 MemoryRegion *inject_memory;
 
 int _event_injection = 0;
-u32 _auto_injection = 0;
-u32 _time_injection = 0;
+uint32_t _auto_injection = 0;
+uint32_t _time_injection = 0;
 struct injection *_injection = 0;
 
 struct XTIER_external_command _external_command;
@@ -144,16 +138,6 @@ struct XTIER_choice os_choices[] = {
 };
 
 struct XTIER_choice XTIER_event_inject[] = {
-	{
-		.choice = XTIER_INJECT_EVENT_MODULE_ACE,
-		.description = "Access Control Enforcer",
-		.sub_question = NULL,
-	},
-	{
-		.choice = XTIER_INJECT_EVENT_MODULE_VIRUSTOTAL,
-		.description = "Virustotal",
-		.sub_question = NULL,
-	}
 };
 
 struct XTIER_question top_level_questions[] = {
@@ -864,7 +848,7 @@ void XTIER_command_inject(const char *cmdline)
 	XTIER_ask_current_question();
 }
 
-static void XTIER_ns_to_time(u64 ns, struct XTIER_time *time)
+static void XTIER_ns_to_time(size_t ns, struct XTIER_time *time)
 {
 	if(!time)
 		return;
@@ -904,42 +888,42 @@ static struct XTIER_performance XTIER_print_injection_performance(void)
 
 	if (perf.injections) {
 		XTIER_ns_to_time(perf.total_module_load_time / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Load Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Load Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		XTIER_ns_to_time(perf.total_module_exec_time / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Exec Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Exec Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		XTIER_ns_to_time(perf.total_module_unload_time / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Unload Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Unload Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 		PRINT_OUTPUT("\t |\n");
 
 		if(perf.hypercalls) {
 			XTIER_ns_to_time(perf.total_module_hypercall_time / perf.hypercalls, &t);
-			PRINT_OUTPUT("\t | Average Hypercall Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Hypercall Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			XTIER_ns_to_time(perf.total_module_hypercall_time / perf.injections, &t);
-			PRINT_OUTPUT("\t | Average Hypercall Time per Injection: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Hypercall Time per Injection: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			XTIER_ns_to_time(perf.total_module_hypercall_time, &t);
-			PRINT_OUTPUT("\t | Total Hypercall Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Total Hypercall Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			PRINT_OUTPUT("\t |\n");
 		}
 
 		if(perf.temp_removals) {
 			XTIER_ns_to_time(perf.total_module_temp_removal_time / perf.temp_removals, &t);
-			PRINT_OUTPUT("\t | Average Temp Removal Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Temp Removal Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			XTIER_ns_to_time(perf.total_module_temp_resume_time / perf.temp_removals, &t);
-			PRINT_OUTPUT("\t | Average Temp Resume Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Temp Resume Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			XTIER_ns_to_time((perf.total_module_temp_removal_time + perf.total_module_temp_resume_time) / perf.temp_removals, &t);
-			PRINT_OUTPUT("\t | Average Temp Removal/Resume Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Temp Removal/Resume Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			XTIER_ns_to_time((perf.total_module_temp_removal_time + perf.total_module_temp_resume_time) / perf.injections, &t);
-			PRINT_OUTPUT("\t | Average Temp Removal/Resume Time per Injection: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Temp Removal/Resume Time per Injection: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			XTIER_ns_to_time((perf.total_module_temp_removal_time + perf.total_module_temp_resume_time), &t);
-			PRINT_OUTPUT("\t | Total Temp Removal/Resume Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Total Temp Removal/Resume Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 			PRINT_OUTPUT("\t |\n");
 		}
@@ -948,31 +932,31 @@ static struct XTIER_performance XTIER_print_injection_performance(void)
 		                  perf.total_module_exec_time +
 		                  perf.total_module_unload_time)
 		                 / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Total Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Total Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
 		if(perf.temp_removals) {
 			XTIER_ns_to_time((perf.total_module_exec_time -
 			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time))
 			                 / perf.injections, &t);
-			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP Removal/Resume: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP Removal/Resume: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		}
 
 		if(perf.hypercalls) {
 			XTIER_ns_to_time((perf.total_module_exec_time - perf.total_module_hypercall_time) / perf.injections, &t);
-			PRINT_OUTPUT("\t | Average Exec Time w/o Hypercalls: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Exec Time w/o Hypercalls: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		}
 
 		if(perf.temp_removals && perf.hypercalls) {
 			XTIER_ns_to_time((perf.total_module_exec_time -
 			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time + perf.total_module_hypercall_time))
 			                 / perf.injections, &t);
-			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP R/R & Hypercalls: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP R/R & Hypercalls: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		}
 
 		XTIER_ns_to_time((perf.total_module_load_time +
 		                  perf.total_module_exec_time +
 		                  perf.total_module_unload_time), &t);
-		PRINT_OUTPUT("\t | Total Time: %llu s %llu ms %llu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Total Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 	}
 
 	PRINT_OUTPUT("\t ___________________________________\n\n");
@@ -1056,7 +1040,7 @@ void XTIER_command_event_based_inject(const char *cmdline)
 
 void XTIER_command_time_inject(const char *cmdline)
 {
-	u32 choice;
+	uint32_t choice;
 
 	// Was a value given?
 	if(!cmdline)
@@ -1066,7 +1050,7 @@ void XTIER_command_time_inject(const char *cmdline)
 	}
 
 	// Get the choice
-	choice = (u32)atoi(cmdline);
+	choice = (uint32_t)atoi(cmdline);
 
 	if(!choice)
 		PRINT_OUTPUT("Timed-Injection will be disabled!\n");
@@ -1074,7 +1058,7 @@ void XTIER_command_time_inject(const char *cmdline)
 		PRINT_OUTPUT("Timed-Injection will be set to %u seconds...\n", choice);
 
 	_time_injection = choice;
-	XTIER_ioctl(XTIER_IOCTL_INJECT_SET_TIME_INJECT, (void *)(u64)choice);
+	XTIER_ioctl(XTIER_IOCTL_INJECT_SET_TIME_INJECT, (void *)(uint64_t)choice);
 
 	// Print performance
 	if(!_time_injection)
@@ -1086,7 +1070,7 @@ void XTIER_command_time_inject(const char *cmdline)
 
 void XTIER_command_auto_inject(const char *cmdline)
 {
-	u32 choice;
+	uint32_t choice;
 
 	// Was a value given?
 	if(!cmdline)
@@ -1096,7 +1080,7 @@ void XTIER_command_auto_inject(const char *cmdline)
 	}
 
 	// Get the choice
-	choice = (u32)atoi(cmdline);
+	choice = (uint32_t)atoi(cmdline);
 
 	if(!choice)
 		PRINT_OUTPUT("Auto-Injection will be disabled!\n");
@@ -1104,7 +1088,7 @@ void XTIER_command_auto_inject(const char *cmdline)
 		PRINT_OUTPUT("Auto-Injection will be set to %u...\n", choice);
 
 	_auto_injection = choice;
-	XTIER_ioctl(XTIER_IOCTL_INJECT_SET_AUTO_INJECT, (void *)(u64)choice);
+	XTIER_ioctl(XTIER_IOCTL_INJECT_SET_AUTO_INJECT, (void *)(uint64_t)choice);
 }
 
 /*
@@ -1179,75 +1163,26 @@ int XTIER_question_inject_get_file(const char *cmdline)
 
 int XTIER_question_event_inject_select_module(const char *cmdline)
 {
-	int choice;
 	int ret = 0;
 
 	// Get the choice
-	choice = atoi(cmdline);
+	//atoi(cmdline);
 
 	// Free old injection structure if there is any
 	if (_injection)
 		free_injection(_injection);
 
-	if(choice == XTIER_INJECT_EVENT_MODULE_ACE)
-	{
-		// Set params
-		// Create new injection structure
-		_injection = new_injection("/tmp/linux/ace.inject");
-
-		if (!_injection)
-		{
-			PRINT_ERROR("An error occurred while creating the injection structure!\n");
-			return ret;
-		}
-
-		if(_XTIER.os == XTIER_OS_LINUX_64)
-		{
-			// Open system call:   system call table address + (nr_sys_open (2) * 8)
-			// inject.event_address = 0xffffffff816002e0 + (2 * 8);
-			_injection->event_address = (void *)0xffffffff81164830;
-		}
-		else
-		{
-			PRINT_ERROR("Target OS unsupported or not set!\n");
-			return 0;
-		}
-	}
-	else if(choice == XTIER_INJECT_EVENT_MODULE_VIRUSTOTAL)
-	{
-		// Set params
-		_injection = new_injection("/tmp/linux/virus.inject");
-
-		if (!_injection)
-		{
-			PRINT_ERROR("An error occurred while creating the injection structure!\n");
-			return ret;
-		}
-
-		if(_XTIER.os == XTIER_OS_LINUX_64)
-		{
-			// Open system call:   system call table address + (nr_sys_open (2) * 8)
-			// inject.event_address = 0xffffffff816002e0 + (2 * 8);
-			// inject.event_address = 0xffffffff81164830;
-			_injection->event_address = (void *)0xffffffff81015140;
-		}
-		else
-		{
-			PRINT_ERROR("Target OS unsupported or not set!\n");
-			return 0;
-		}
-	}
-	else
-	{
-		PRINT_ERROR("Unknown Choice!\n");
-		return ret;
-	}
+	// TODO: unusable and hardcoded -> optimize...
+	_injection = new_injection("/tmp/ace.inject");
+	// Open system call:   system call table address + (nr_sys_open (2) * 8)
+	// inject.event_address = 0xffffffff816002e0 + (2 * 8);
+	// inject.event_address = 0xffffffff81164830;
+	_injection->event_address = (void *)0xffffffff81015140;
 
 	// Get File
 	injection_load_code(_injection);
 
-	if (!_injection->code)
-	{
+	if (!_injection->code) {
 		PRINT_ERROR("An error occurred while loading the module code!\n");
 		return ret;
 	}
@@ -1327,9 +1262,9 @@ void XTIER_synchronize_state(CPUState *state)
 /*
  * Handle kvm exits due to XTIER.
  */
-int XTIER_handle_exit(CPUState *env, u64 exit_reason)
+int XTIER_handle_exit(CPUState *env, uint64_t exit_reason)
 {
-	PRINT_DEBUG("Handling kvm EXIT: %llx...\n", exit_reason);
+	PRINT_DEBUG("Handling kvm EXIT: %zx...\n", exit_reason);
 
 	int ret = 0;
 

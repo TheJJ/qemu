@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../X-TIER-base/X-TIER.h"
+#include "/usr/src/linux/include/uapi/linux/x-tier.h"
 
 // pipe file to use as transfer
 #define injection_input_pipe_filename "/tmp/pipe_ext_to_x-tier"

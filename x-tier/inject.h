@@ -1,21 +1,10 @@
-/*
- * X-TIER_inject.h
- *
- *  Created on: Apr 3, 2012
- *      Author: Sebastian Vogl <vogls@sec.in.tum.de>
- */
-
 #ifndef XTIER_INJECT_H_
 #define XTIER_INJECT_H_
 
-#include "X-TIER_external_command.h"
-#include "../X-TIER-base/X-TIER.h"
+#include "external_command.h"
+#include "/usr/src/linux/include/uapi/linux/x-tier.h"
 
 #include "qemu-common.h"
-
-/* EVENT BASED INJECTION */
-#define XTIER_INJECT_EVENT_MODULE_ACE 0
-#define XTIER_INJECT_EVENT_MODULE_VIRUSTOTAL 1
 
 /*
  * STRUCTS
@@ -29,18 +18,18 @@ struct XTIER_x86_call_registers
 	// they will be on the stack first.
 	// Thus if an printk requires more function arguments,
 	// they will be naturally there where printk will look for them :).
-	u64 esp0; // First esp
-	u64 esp1;
-	u64 esp2;
-	u64 esp3;
-	u64 esp4; // Last esp
+	uint64_t esp0; // First esp
+	uint64_t esp1;
+	uint64_t esp2;
+	uint64_t esp3;
+	uint64_t esp4; // Last esp
 
-	u64 rdi; // First arg
-	u64 rsi;
-	u64 rdx;
-	u64 rcx;
-	u64 r8;
-	u64 r9; // Last arg
+	uint64_t rdi; // First arg
+	uint64_t rsi;
+	uint64_t rdx;
+	uint64_t rcx;
+	uint64_t r8;
+	uint64_t r9; // Last arg
 };
 
 /**
