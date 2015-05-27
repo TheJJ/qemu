@@ -42,8 +42,7 @@ typedef void (*XTIER_command_callback)(const char *cmdline);
 /*
  * Structures
  */
-struct XTIER_time
-{
+struct XTIER_time {
 	size_t sec;
 	size_t ms;
 	size_t ns;
@@ -51,48 +50,31 @@ struct XTIER_time
 
 struct XTIER_question;
 
-struct XTIER_choice
-{
-	// The number representing this choice
-	int choice;
-	// The description of the choice (Printed if help is requested)
-	const char *description;
-	// A Pointer to a sub question that may follow this choice
-	struct XTIER_question *sub_question;
+struct XTIER_choice {
+	int choice;                           // The number representing this choice.
+	const char *description;              // The description of the choice (Printed if help is requested).
+	struct XTIER_question *sub_question;  // A Pointer to a sub question that may follow this choice.
 };
 
-struct XTIER_question
-{
-	// should be one of the question ids
-	int id;
-	// The function that will handle the user input.
-	XTIER_question_callback callback;
-	// The different choices for the question.
-	struct XTIER_choice *choices;
+struct XTIER_question {
+	int id;                               // should be one of the question ids.
+	XTIER_question_callback callback;     // The function that will handle the user input.
+	struct XTIER_choice *choices;         // The different choices for the question.
+
 	int number_of_choices;
 };
 
-struct XTIER_command
-{
-	// The name of the command.
-	// This string will be matched against the user input.
-	const char *name;
-	// The description of the command
-	const char *description;
-	// The callback that will be used.
-	XTIER_command_callback callback;
-	// The list of subcommands
-	struct XTIER_command *sub_commands;
-	// The number of subcommands
-	int number_of_sub_commands;
+struct XTIER_command {
+	const char *name;                       // The name of the command, this string will be matched against the user input.
+	const char *description;                // The description of the command
+	XTIER_command_callback callback;        // The callback that will be used.
+	struct XTIER_command *sub_commands;     // The list of subcommands
+	int number_of_sub_commands;             // The number of subcommands
 };
 
 
-/*
- * Globals
- */
 // The current XTIER config.
-struct XTIER_state _XTIER;
+struct xtier_config _XTIER;
 
 CPUState *cpu_state = NULL;
 
@@ -140,28 +122,6 @@ struct XTIER_choice os_choices[] = {
 struct XTIER_choice XTIER_event_inject[] = {
 };
 
-struct XTIER_question top_level_questions[] = {
-	{
-		.id = XTIER_QUESTION_OS,
-		.callback = XTIER_question_specify_os,
-		.choices = os_choices,
-		.number_of_choices = ARRAY_SIZE(os_choices),
-	},
-	{
-		.id = XTIER_QUESTION_INJECT_GET_FILE,
-		.callback = XTIER_question_inject_get_file,
-		.choices = NULL,
-		.number_of_choices = 0,
-	},
-	{
-		.id = XTIER_QUESTION_EVENT_INJECT_SELECT_MODULE,
-		.callback = XTIER_question_event_inject_select_module,
-		.choices = XTIER_event_inject,
-		.number_of_choices = ARRAY_SIZE(XTIER_event_inject),
-	},
-};
-
-
 /*
  * Commands
  *
@@ -172,37 +132,9 @@ struct XTIER_command *_current_command_parent;
 
 struct XTIER_command top_level_commands[] = {
 	{
-		.name = "auto-inject",
-		.description = "Enable auto injection for the currently injected module.",
-		.callback = XTIER_command_auto_inject,
-		.sub_commands = NULL,
-		.number_of_sub_commands = 0,
-	},
-	{
-		.name = "time-inject",
-		.description = "Enable timed-injection for the currently injected module.",
-		.callback = XTIER_command_time_inject,
-		.sub_commands = NULL,
-		.number_of_sub_commands = 0,
-	},
-	{
-		.name = "event-inject",
-		.description = "Event-based injection of a kernel module.",
-		.callback = XTIER_command_event_based_inject,
-		.sub_commands = NULL,
-		.number_of_sub_commands = 0,
-	},
-	{
 		.name = "cont",
 		.description = "Resume VM and return to 'monitor' Mode.",
 		.callback = XTIER_switch_to_monitor_mode,
-		.sub_commands = NULL,
-		.number_of_sub_commands = 0,
-	},
-	{
-		.name = "inject",
-		.description = "Inject code into the Virtual Machine",
-		.callback = XTIER_command_inject,
 		.sub_commands = NULL,
 		.number_of_sub_commands = 0,
 	},
@@ -279,20 +211,6 @@ static void _XTIER_init(void)
 int XTIER_ioctl(unsigned int command, void *arg)
 {
 	return kvm_vcpu_ioctl(CPU(X86_CPU(cpu_state)), command, arg);
-}
-
-static struct XTIER_question * _find_top_level_question(int id)
-{
-	int i;
-	int size = ARRAY_SIZE(top_level_questions);
-
-	for(i = 0; i < size; i++)
-	{
-		if(top_level_questions[i].id == id)
-			return &top_level_questions[i];
-	}
-
-	return NULL;
 }
 
 static struct XTIER_command * _find_command(const char *name)
@@ -621,12 +539,12 @@ void XTIER_switch_to_XTIER_mode(CPUState *env)
 	cpu_state = env;
 
 	// Init if necessary
-	if(!_initialized)
+	if (!_initialized) {
 		_XTIER_init();
+	}
 
 	// Print the current question if any
-	if(_current_question)
-	{
+	if (_current_question) {
 		XTIER_ask_current_question();
 		PRINT_OUTPUT(XTIER_PROMPT);
 	}
@@ -669,11 +587,6 @@ void XTIER_switch_to_monitor_mode_keep_paused(const char *cmdline)
 
 void XTIER_command_receive_external_command(const char *cmdline)
 {
-
-	char *prev_module_name = NULL;
-	char *prev_module_code = NULL;
-	unsigned int prev_module_code_len = 0;
-
 	int ret = 0;
 	int n = 0, m = 0;
 
@@ -751,52 +664,26 @@ void XTIER_command_receive_external_command(const char *cmdline)
 		// Injection command
 		// Free old injection structure if there is any
 		if (_injection) {
-			// Save old path and code
-			prev_module_name = malloc(_injection->path_len);
-			prev_module_code = _injection->code;
-			prev_module_code_len = _injection->code_len;
-
-			if (prev_module_name) {
-				strcpy(prev_module_name, _injection->module_path);
-			} else {
-				PRINT_ERROR("Could not reserve memory!\n");
-				return;
-			}
-
 			free_injection_without_code(_injection);
 		}
 
 		// Make sure the OS is set
 		if(_XTIER.os == XTIER_OS_UNKNOWN) {
 			_XTIER.os = XTIER_OS_LINUX_64;
-			XTIER_ioctl(XTIER_IOCTL_SET_GLOBAL_XTIER_STATE, &_XTIER);
+			XTIER_ioctl(XTIER_IOCTL_SET_XTIER_STATE, &_XTIER);
 		}
 
 		// Get the injection structure
 		_injection = injection_from_fd(_external_command_fd);
 
 		// Read in data if required
-		if (_injection->code_len == 0) { //(!prev_module_name || strcmp(_injection->module_path, prev_module_name))) {
-			// free prev data
-			if (prev_module_code) {
-				free(prev_module_code);
-			}
-
-			injection_load_code(_injection);
-		}
-		else if (false && prev_module_name && !strcmp(_injection->module_path, prev_module_name)) {
-			PRINT_DEBUG("Reusing existing code!\n");
-			_injection->code_len = prev_module_code_len;
-			_injection->code = prev_module_code;
-		}
-
-		// Free old name if any
-		if (prev_module_name) {
-			free(prev_module_name);
+		if (_injection->code_len == 0) {
+			PRINT_ERROR("Received injection doesn't have code!\n");
+			return;
 		}
 
 		// Inject
-		PRINT_DEBUG("Injecting file %s...\n", _injection->module_path);
+		PRINT_DEBUG("Injecting file %s...\n", _injection->name);
 		PRINT_DEBUG("|_ consists of %d bytes code\n", _injection->code_len);
 		PRINT_DEBUG("|_ consists of %d arguments of overall size %u\n", _injection->argc, _injection->args_size);
 		print_injection(_injection);
@@ -827,27 +714,6 @@ void XTIER_command_receive_external_command(const char *cmdline)
 	//_external_command_fd = 0;
 }
 
-void XTIER_command_inject(const char *cmdline)
-{
-	// Check if the OS has been set yet.
-	if(_XTIER.os == XTIER_OS_UNKNOWN)
-	{
-		// Nope. We need to do that first.
-		PRINT_OUTPUT("\nSo far no OS has been specified. Please do so now.\n");
-		_current_question = _find_top_level_question(XTIER_QUESTION_OS);
-		XTIER_ask_current_question();
-
-		// Return to us afterwards
-		_return_to = &XTIER_command_inject;
-
-		return;
-	}
-
-	_current_question = _find_top_level_question(XTIER_QUESTION_INJECT_GET_FILE);
-
-	XTIER_ask_current_question();
-}
-
 static void XTIER_ns_to_time(size_t ns, struct XTIER_time *time)
 {
 	if(!time)
@@ -862,41 +728,43 @@ static void XTIER_ns_to_time(size_t ns, struct XTIER_time *time)
 }
 
 /*
- * Returns the return value of the injection.
+ * Prints statistics about timing and others of the injection
  */
-static struct XTIER_performance XTIER_print_injection_performance(void)
+static struct xtier_stats XTIER_print_injection_performance(void)
 {
 	int ret;
 	struct XTIER_time t;
-	struct XTIER_performance perf;
+	struct xtier_stats perf;
 
 	// Get performacne data
 	ret = XTIER_ioctl(XTIER_IOCTL_INJECT_GET_PERFORMANCE, &perf);
 
 	if (ret < 0) {
 		PRINT_ERROR("An error occurred while obtaining the performance data of the injection!\n");
-		perf.return_value = ret;
 		return perf;
 	}
 
 	// Print statistics
 	PRINT_OUTPUT("\n\nInjection Statistics:\n");
-	PRINT_OUTPUT("\t | File: '%s'\n", _injection->module_path);
+	PRINT_OUTPUT("\t | File: '%s'\n", _injection->name);
 	PRINT_OUTPUT("\t | Injections: %u\n", perf.injections);
 	PRINT_OUTPUT("\t | Temp Removals/Resumes: %u\n", perf.temp_removals);
 	PRINT_OUTPUT("\t | Hypercalls: %u\n", perf.hypercalls);
 
 	if (perf.injections) {
 		XTIER_ns_to_time(perf.total_module_load_time / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Load Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Load Time: %zu s %zu ms %zu ns\n",
+		             t.sec, t.ms, t.ns);
 		XTIER_ns_to_time(perf.total_module_exec_time / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Exec Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Exec Time: %zu s %zu ms %zu ns\n",
+		             t.sec, t.ms, t.ns);
 		XTIER_ns_to_time(perf.total_module_unload_time / perf.injections, &t);
-		PRINT_OUTPUT("\t | Average Unload Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
+		PRINT_OUTPUT("\t | Average Unload Time: %zu s %zu ms %zu ns\n",
+		             t.sec, t.ms, t.ns);
 
 		PRINT_OUTPUT("\t |\n");
 
-		if(perf.hypercalls) {
+		if (perf.hypercalls) {
 			XTIER_ns_to_time(perf.total_module_hypercall_time / perf.hypercalls, &t);
 			PRINT_OUTPUT("\t | Average Hypercall Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
@@ -909,7 +777,7 @@ static struct XTIER_performance XTIER_print_injection_performance(void)
 			PRINT_OUTPUT("\t |\n");
 		}
 
-		if(perf.temp_removals) {
+		if (perf.temp_removals) {
 			XTIER_ns_to_time(perf.total_module_temp_removal_time / perf.temp_removals, &t);
 			PRINT_OUTPUT("\t | Average Temp Removal Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
@@ -934,19 +802,19 @@ static struct XTIER_performance XTIER_print_injection_performance(void)
 		                 / perf.injections, &t);
 		PRINT_OUTPUT("\t | Average Total Time: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 
-		if(perf.temp_removals) {
+		if (perf.temp_removals) {
 			XTIER_ns_to_time((perf.total_module_exec_time -
 			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time))
 			                 / perf.injections, &t);
 			PRINT_OUTPUT("\t | Average Exec Time w/o TEMP Removal/Resume: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		}
 
-		if(perf.hypercalls) {
+		if (perf.hypercalls) {
 			XTIER_ns_to_time((perf.total_module_exec_time - perf.total_module_hypercall_time) / perf.injections, &t);
 			PRINT_OUTPUT("\t | Average Exec Time w/o Hypercalls: %zu s %zu ms %zu ns\n", t.sec, t.ms, t.ns);
 		}
 
-		if(perf.temp_removals && perf.hypercalls) {
+		if (perf.temp_removals && perf.hypercalls) {
 			XTIER_ns_to_time((perf.total_module_exec_time -
 			                  (perf.total_module_temp_removal_time + perf.total_module_temp_resume_time + perf.total_module_hypercall_time))
 			                 / perf.injections, &t);
@@ -967,12 +835,22 @@ static struct XTIER_performance XTIER_print_injection_performance(void)
 static void XTIER_handle_injection_finished(void)
 {
 	// Print performance data
-	struct XTIER_performance perf = XTIER_print_injection_performance();
-	int64_t return_value = perf.return_value;
+	XTIER_print_injection_performance();
+
+	struct xtier_state state;
+	int ret;
+
+	// fetch injection state, return value etc
+	if ((ret = XTIER_ioctl(XTIER_IOCTL_INJECT_GET_STATE, &state)) < 0) {
+		PRINT_ERROR("An error occurred while obtaining the performance data of the injection!\n");
+		return;
+	}
+
+	int64_t return_value = state.return_value;
 
 	PRINT_OUTPUT("Injection finished (return value %ld)!\n", return_value);
 	PRINT_INFO("Injection finished (return value %ld)!\n", return_value);
-	PRINT_INFO("Injection CR3: %zx!\n", perf.cr3);
+	PRINT_INFO("Injection CR3: %zx!\n", state.cr3);
 
 	// Notify waiting applications if any
 	if (_external_command_redirect.type != NONE && _external_command_redirect.stream) {
@@ -1001,263 +879,11 @@ static void XTIER_handle_injection_fault(void)
 	XTIER_synchronize_state(cpu_state);
 }
 
-void XTIER_command_event_based_inject(const char *cmdline)
-{
-	// Check if the OS has been set yet.
-	if(_XTIER.os == XTIER_OS_UNKNOWN)
-	{
-		// Nope. We need to do that first.
-		PRINT_OUTPUT("\nSo far no OS has been specified. Please do so now.\n");
-		_current_question = _find_top_level_question(XTIER_QUESTION_OS);
-		XTIER_ask_current_question();
-
-		// Return to us afterwards
-		_return_to = &XTIER_command_event_based_inject;
-
-		return;
-	}
-
-	if(_event_injection == 1)
-	{
-		PRINT_OUTPUT("\nDisabling event injection...\n");
-
-		XTIER_ioctl(XTIER_IOCTL_INJECT, 0);
-
-		_event_injection = 0;
-
-		// Print performance data if event-injection was disabled
-		XTIER_print_injection_performance();
-	}
-	else
-	{
-		PRINT_OUTPUT("\nEnabling event injection...\n");
-
-		_current_question = _find_top_level_question(XTIER_QUESTION_EVENT_INJECT_SELECT_MODULE);
-
-		XTIER_ask_current_question();
-	}
-}
-
-void XTIER_command_time_inject(const char *cmdline)
-{
-	uint32_t choice;
-
-	// Was a value given?
-	if(!cmdline)
-	{
-		PRINT_ERROR("Please specify the period of time after the a module will be reinjected.\n");
-		return;
-	}
-
-	// Get the choice
-	choice = (uint32_t)atoi(cmdline);
-
-	if(!choice)
-		PRINT_OUTPUT("Timed-Injection will be disabled!\n");
-	else
-		PRINT_OUTPUT("Timed-Injection will be set to %u seconds...\n", choice);
-
-	_time_injection = choice;
-	XTIER_ioctl(XTIER_IOCTL_INJECT_SET_TIME_INJECT, (void *)(uint64_t)choice);
-
-	// Print performance
-	if(!_time_injection)
-	{
-		// Print performance data if timed-injection was disabled
-		XTIER_print_injection_performance();
-	}
-}
-
-void XTIER_command_auto_inject(const char *cmdline)
-{
-	uint32_t choice;
-
-	// Was a value given?
-	if(!cmdline)
-	{
-		PRINT_ERROR("Please specify the number of times the module should be auto-injected.\n");
-		return;
-	}
-
-	// Get the choice
-	choice = (uint32_t)atoi(cmdline);
-
-	if(!choice)
-		PRINT_OUTPUT("Auto-Injection will be disabled!\n");
-	else
-		PRINT_OUTPUT("Auto-Injection will be set to %u...\n", choice);
-
-	_auto_injection = choice;
-	XTIER_ioctl(XTIER_IOCTL_INJECT_SET_AUTO_INJECT, (void *)(uint64_t)choice);
-}
-
-/*
- * Get the file that will be injected.
- */
-int XTIER_question_inject_get_file(const char *cmdline)
-{
-	int ret = 0;
-
-	// Free old injection structure if there is any
-	if (_injection)
-		free_injection(_injection);
-
-	// Create new injection structure
-	_injection = new_injection(cmdline);
-
-	if (!_injection)
-	{
-		PRINT_ERROR("An error occurred while creating the injection structure!\n");
-		return ret;
-	}
-
-	// Load code
-	injection_load_code(_injection);
-
-	if (!_injection->code)
-	{
-		PRINT_ERROR("An error occurred while loading the module code!\n");
-		return ret;
-	}
-
-	// Set params
-	_injection->event_based = 0;
-	_injection->exit_after_injection = 1;
-	_injection->event_address = 0;
-
-	// Args
-	// add_int_argument(_injection, 0x1337);
-	// add_string_argument(_injection, "Awesome this works!");
-	// consolidate_args(_injection);
-
-
-	// We could include timed injection here such that it is exclusive from
-	// auto injection.
-	if(_auto_injection)
-	{
-		_injection->auto_inject = _auto_injection;
-	}
-	else
-	{
-		// Exactly inject once
-		_injection->auto_inject = 1;
-	}
-
-	_injection->time_inject = _time_injection;
-
-	// Inject
-	PRINT_DEBUG("Injecting file %s which consists of %d bytes...\n", _injection->module_path, _injection->code_len);
-	ret = XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
-
-	if(ret < 0)
-		PRINT_ERROR("An error (%d) occurred while injecting the file!\n", ret);
-
-	// Synchronize new cpu_state
-	cpu_state->kvm_vcpu_dirty = 0; // Force the sync
-	XTIER_synchronize_state(cpu_state);
-
-	// fprintf(stderr, "RIP now: 0x%llx\n", cpu_state->eip);
-
-	return ret;
-}
-
-int XTIER_question_event_inject_select_module(const char *cmdline)
-{
-	int ret = 0;
-
-	// Get the choice
-	//atoi(cmdline);
-
-	// Free old injection structure if there is any
-	if (_injection)
-		free_injection(_injection);
-
-	// TODO: unusable and hardcoded -> optimize...
-	_injection = new_injection("/tmp/ace.inject");
-	// Open system call:   system call table address + (nr_sys_open (2) * 8)
-	// inject.event_address = 0xffffffff816002e0 + (2 * 8);
-	// inject.event_address = 0xffffffff81164830;
-	_injection->event_address = (void *)0xffffffff81015140;
-
-	// Get File
-	injection_load_code(_injection);
-
-	if (!_injection->code) {
-		PRINT_ERROR("An error occurred while loading the module code!\n");
-		return ret;
-	}
-
-	// Set params
-	_injection->event_based = 1;
-	_injection->exit_after_injection = 0;
-	_injection->auto_inject = 0;
-	_injection->time_inject = 0;
-
-	// Args
-	_injection->argv = NULL;
-	_injection->args_size = 0;
-	_injection->size_last_arg = 0;
-
-	// Inject
-	PRINT_DEBUG("Injecting even based file %s which consists of %d bytes...\n", _injection->module_path, _injection->code_len);
-	ret =  XTIER_ioctl(XTIER_IOCTL_INJECT, _injection);
-
-	if(ret < 0)
-		PRINT_ERROR("An error occurred while injecting the file!\n");
-
-	// Enable event injection
-	_event_injection = 1;
-
-	// Synchronize new cpu_state
-	cpu_state->kvm_vcpu_dirty = 0; // Force the sync
-	XTIER_synchronize_state(cpu_state);
-
-	// fprintf(stderr, "RIP now: 0x%llx\n", cpu_state->eip);
-
-	return ret;
-}
-
-int XTIER_question_specify_os(const char *cmdline)
-{
-	int choice;
-	int ret;
-
-	choice = atoi(cmdline);
-
-	if(choice == XTIER_OS_LINUX_64)
-	{
-		PRINT_OUTPUT("\t-> OS will be set to 'GNU/Linux 64-bit'\n");
-	}
-	else if(choice == XTIER_OS_WINDOWS_7_32)
-	{
-		PRINT_OUTPUT("\t-> OS will be set to 'Windows 7 32-bit'\n");
-	}
-	else if(choice == XTIER_OS_LINUX_32)
-	{
-		PRINT_OUTPUT("\t-> OS will be set to 'GNU/Linux 32-bit'\n");
-	}
-	else
-	{
-		PRINT_OUTPUT("Unknown OS specified!\n");
-		return -1;
-	}
-
-	_XTIER.os = choice;
-
-	ret = XTIER_ioctl(XTIER_IOCTL_SET_GLOBAL_XTIER_STATE, &_XTIER);
-
-	// Return to caller
-	if(_return_to)
-		_return_to(cmdline);
-
-	return ret;
-}
 
 void XTIER_synchronize_state(CPUState *state)
 {
 	cpu_synchronize_state(state);
 }
-
 
 /*
  * Handle kvm exits due to XTIER.

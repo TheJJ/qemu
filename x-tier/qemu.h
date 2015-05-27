@@ -9,7 +9,7 @@
 // user prompt for x-tier interactive shell
 #define XTIER_PROMPT "(X-TIER >> "
 
-extern struct XTIER_state _XTIER;
+extern struct xtier_config _XTIER;
 
 /**
  * Parse the current user input to detect X-TIER commands.
@@ -83,21 +83,6 @@ void XTIER_command_receive_external_command(const char *cmdline);
  * Print the current question.
  */
 void XTIER_ask_current_question(void);
-
-/**
- * Ask the user to specify an OS.
- */
-int XTIER_question_specify_os(const char *cmdline);
-
-/**
- * Ask the user which file should be injected.
- */
-int XTIER_question_inject_get_file(const char *cmdline);
-
-/**
- * Ask the user to select an event-based module for injection.
- */
-int XTIER_question_event_inject_select_module(const char *cmdline);
 
 /**
  * synchronize the kvm cpu state.
