@@ -6,8 +6,6 @@
 #include "../include/sysemu/kvm.h"
 #include "../include/exec/cpu-all.h"
 
-#include "/usr/src/linux/include/uapi/linux/x-tier.h"
-
 
 /*
  * Try to convert the given value to a HV address. If this does not succeed,

@@ -2,8 +2,6 @@
 #define XTIER_INJECT_H_
 
 #include "external_command.h"
-#include "/usr/src/linux/include/uapi/linux/x-tier.h"
-
 #include "qemu-common.h"
 
 /*

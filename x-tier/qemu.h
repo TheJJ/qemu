@@ -4,7 +4,7 @@
 #include "../include/qemu-common.h"
 #include "../include/monitor/monitor.h"
 
-#include "/usr/src/linux/include/uapi/linux/x-tier.h"
+#include <linux/xtier.h>
 
 // user prompt for x-tier interactive shell
 #define XTIER_PROMPT "(X-TIER >> "
